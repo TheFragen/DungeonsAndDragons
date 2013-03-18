@@ -2,7 +2,9 @@ package otg;
 
 import java.awt.EventQueue;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 public class MainWindow {
 
@@ -35,8 +37,13 @@ public class MainWindow {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+//		ImagePanel panel = new ImagePanel(new ImageIcon("res/background.jpg").getImage());
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+//		frame.getContentPane().add(panel);
+		JLabel label = new JLabel();  
+        label.setIcon(new ImageIcon("res/blacksquare.jpg"));
+        frame.add(label);  
+		frame.setBounds(100, 100, 256, 457);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
