@@ -25,18 +25,22 @@ public class MainWindow {
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
 	private JLabel lblResult;
+	private static JLabel lblDatabasevalue;
+	static int rows = 0;
+
+
+	static int valueInRow = 0;
+	static String DbValue = "Null";
 
 	int randomInt = 0;
 	int rolledValue;
 	String user = "Null";
 	int diceRolling = 0;
+	static boolean firstRun = true;
 
 	private JTextField txtUsername;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -46,12 +50,13 @@ public class MainWindow {
 					e.printStackTrace();
 				}
 			}
-		});   t.start();
+		});
+		t.start();
 
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
 				try {
-					for (int i = Integer.MAX_VALUE; i > 0; i--) {
+					for (int i = 0; i == 0; i = 0) {
 						updateUserInterface();
 						Thread.sleep(2000);
 					}
@@ -59,22 +64,25 @@ public class MainWindow {
 					e.printStackTrace();
 				}
 			}
-		});  tableThread.start();
+		});
+		tableThread.start();
 	}
 
 	/**
 	 * Create the application.
 	 * 
 	 * @throws Exception
+	 * @wbp.parser.entryPoint
 	 */
 	public MainWindow() throws Exception {
 		databaseConnection();
 		initialize();
-
 	}
 
 	/**
 	 * Initialize the contents of the frame.
+	 * 
+	 * @throws Exception
 	 */
 	private void initialize() {
 
@@ -323,6 +331,12 @@ public class MainWindow {
 								+ rolledValue);
 						lblResult.setText(Integer.toString(rolledValue));
 						int id = 0;
+						try {
+							id = getRows() + 1;
+						} catch (Exception e2) {
+							// TODO Auto-generated catch block
+							e2.printStackTrace();
+						}
 						int diceVal = rolledValue;
 
 						try {
@@ -332,8 +346,6 @@ public class MainWindow {
 						} catch (Exception e1) {
 							e1.printStackTrace();
 						}
-
-						id++;
 					}
 				}
 			}
@@ -346,7 +358,7 @@ public class MainWindow {
 		txtUsername.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				int keyCode = e.getKeyCode();
-				if (keyCode == e.VK_ENTER) {
+				if (keyCode == KeyEvent.VK_ENTER) {
 					String s = txtUsername.getText();
 					user = s;
 					System.out.println("Username is set " + user);
@@ -359,12 +371,12 @@ public class MainWindow {
 		frame.getContentPane().add(txtUsername);
 		txtUsername.setColumns(10);
 
-		JTextPane txtpnDatabaseValue = new JTextPane();
-		txtpnDatabaseValue.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		// Lav label der henter værdi fra database
 
-		txtpnDatabaseValue.setText("database Value");
-		txtpnDatabaseValue.setBounds(98, 357, 126, 61);
-		frame.getContentPane().add(txtpnDatabaseValue);
+		lblDatabasevalue = new JLabel(DbValue);
+		lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
+		lblDatabasevalue.setBounds(117, 360, 88, 41);
+		frame.getContentPane().add(lblDatabasevalue);
 
 		frame.getContentPane().add(panel);
 
@@ -373,8 +385,8 @@ public class MainWindow {
 	private void databaseConnection() throws Exception {
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
-		String sMakeTable = "CREATE TABLE dices (kastID numeric, userName text, diceValue numeric)";
-		String sMakeSelect = "SELECT diceValue from dices";
+		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric)";
+		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0)";
 
 		String sDriver = "jdbc:sqlite";
 		String sDatabaseToUse = "diceRolls.db";
@@ -386,29 +398,17 @@ public class MainWindow {
 
 			db.execute(sDropTable);
 			db.execute(sMakeTable);
+			db.execute(sInsert);
 
-			ResultSet rs = db.executeQuery(sMakeSelect);
-			try {
-				while (rs.next()) {
-					String sResult = rs.getString("diceValue");
-					int i = Integer.valueOf(sResult);
-					System.out.println("Value in Database: " + i);
-				}
-			} finally {
-				try {
-					rs.close();
-				} catch (Exception ignore) {
-				}
-			}
 		} finally {
 			try {
-				((ResultSet) db).close();
 			} catch (Exception ignore) {
 			}
 		}
 	}
 
-	public void updateTable(int id, String userName, int dice) throws Exception {
+	public static void updateTable(int id, String userName, int dice)
+			throws Exception {
 		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'"
 				+ userName + "'" + "," + dice + ")";
 
@@ -425,17 +425,31 @@ public class MainWindow {
 		String sDbUrl = sDriver + ":" + sDatabaseToUse;
 		Database db = new Database(sDbUrl);
 
-		String sMakeUpdate = "SELECT COUNT(*) FROM dices";
+		int amountRows = getRows();
 
-		
+		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = " + amountRows;
+		String sGetDiceValueFirstRun = "SELECT diceValue AS getDice from dices where kastID = 0";
+
 		try {
-			db.execute(sMakeUpdate);
+			String runThis = "Null";
+			if (rows == 1) {
+				db.execute(sGetDiceValueFirstRun);
 
-			ResultSet rs = db.executeQuery(sMakeUpdate);
+				runThis = sGetDiceValueFirstRun;
+				firstRun = false;
+			} else {
+				db.execute(sGetDiceValue);
+
+				runThis = sGetDiceValue;
+			}
+
+			ResultSet rs = db.executeQuery(runThis);
+
 			try {
 				while (rs.next()) {
-					int sResult = rs.getRow();
-					System.out.println("Number of rows " + sResult);
+					int getColoumn = rs.getInt("getDice");
+					System.out.println("Value in newest row: " + getColoumn);
+					setDbValue(Integer.toString(getColoumn));
 				}
 			} finally {
 				try {
@@ -451,4 +465,48 @@ public class MainWindow {
 		}
 	}
 
+	public static int getRows() throws Exception {
+		String sDriver = "jdbc:sqlite";
+		String sDatabaseToUse = "diceRolls.db";
+		String sDbUrl = sDriver + ":" + sDatabaseToUse;
+		Database db = new Database(sDbUrl);
+
+		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM dices";
+
+		try {
+			db.execute(sMakeUpdate);
+
+			ResultSet rs = db.executeQuery(sMakeUpdate);
+
+			try {
+				while (rs.next()) {
+					int sResult = rs.getInt("rowNumber");
+					rows = sResult;
+					System.out.println("Number of rows " + sResult + " ");
+
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+
+		return rows;
+	}
+	
+	
+	public static void setDbValue(String dbValue) {
+		System.out.println("Streng sat " + dbValue);
+		DbValue = dbValue;
+		lblResult.setText("0");
+	}
 }
+
+
