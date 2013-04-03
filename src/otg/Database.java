@@ -3,7 +3,7 @@ package otg;
 import java.sql.*;
 
 public class Database {
-	public String sUrl; // for advertising and debug purposes
+	public String sUrl;
 	private String sDriverName = "org.sqlite.JDBC";
 	private String sDriver;
 	private Connection conn = null;
@@ -18,12 +18,12 @@ public class Database {
 		try {
 			Class.forName(sDriverName);
 		} catch (Exception e) {
-			// connection failed.
+			// Exception til "Connection Failed" 
 			System.out.println("DriverName: " + sDriver + " was not available");
 			System.err.println(e);
 			throw e;
 		}
-		// create a database connection
+		// Opret forbindelse
 		conn = DriverManager.getConnection(sUrl);
 		try {
 			stmt = conn.createStatement();
@@ -36,8 +36,6 @@ public class Database {
 		}
 	}
 
-	// this method should undoubtedly be public as we'll want to call this
-	// to close connections externally to the class
 	public void closeConnection() {
 		if (stmt != null) {
 			try {
@@ -53,9 +51,7 @@ public class Database {
 		}
 	}
 
-	// and we will definitely want to be able to call the following two
-	// functions externally since they expose the database
-	// behaviour which we are trying to access
+	// Nem måde til at execute SQL
 	public ResultSet executeQuery(String instruction) throws SQLException {
 		return stmt.executeQuery(instruction);
 	}

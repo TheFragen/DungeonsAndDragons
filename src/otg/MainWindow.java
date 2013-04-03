@@ -21,13 +21,16 @@ import java.awt.event.KeyEvent;
 
 public class MainWindow {
 
+	String sDriver = "jdbc:sqlite:diceRolls.db";
+	Database db = new Database(sDriver);
+
 	private JFrame frame;
+
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
-	private JLabel lblResult;
+	private static JLabel lblResult;
 	private static JLabel lblDatabasevalue;
 	static int rows = 0;
-
 
 	static int valueInRow = 0;
 	static String DbValue = "Null";
@@ -40,7 +43,7 @@ public class MainWindow {
 
 	private JTextField txtUsername;
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -52,20 +55,9 @@ public class MainWindow {
 			}
 		});
 		t.start();
+		
 
-		Thread tableThread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					for (int i = 0; i == 0; i = 0) {
-						updateUserInterface();
-						Thread.sleep(2000);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		tableThread.start();
+		
 	}
 
 	/**
@@ -77,6 +69,26 @@ public class MainWindow {
 	public MainWindow() throws Exception {
 		databaseConnection();
 		initialize();
+		
+		Thread tableThread = new Thread(new Runnable() {
+			public void run() {
+
+				for (int i = 0; i == 0; i = 0) {
+					try {
+						updateUserInterface();
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		tableThread.start();
 	}
 
 	/**
@@ -388,12 +400,6 @@ public class MainWindow {
 		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric)";
 		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0)";
 
-		String sDriver = "jdbc:sqlite";
-		String sDatabaseToUse = "diceRolls.db";
-
-		String sDbUrl = sDriver + ":" + sDatabaseToUse;
-
-		Database db = new Database(sDbUrl);
 		try {
 
 			db.execute(sDropTable);
@@ -407,27 +413,19 @@ public class MainWindow {
 		}
 	}
 
-	public static void updateTable(int id, String userName, int dice)
-			throws Exception {
+	public void updateTable(int id, String userName, int dice) throws Exception {
 		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'"
 				+ userName + "'" + "," + dice + ")";
 
-		String sDriver = "jdbc:sqlite";
-		String sDatabaseToUse = "diceRolls.db";
-		String sDbUrl = sDriver + ":" + sDatabaseToUse;
-		Database db = new Database(sDbUrl);
 		db.execute(sMakeInsert);
 	}
 
-	public static void updateUserInterface() throws Exception {
-		String sDriver = "jdbc:sqlite";
-		String sDatabaseToUse = "diceRolls.db";
-		String sDbUrl = sDriver + ":" + sDatabaseToUse;
-		Database db = new Database(sDbUrl);
+	public void updateUserInterface() throws Exception {
 
 		int amountRows = getRows();
 
-		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = " + amountRows;
+		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = "
+				+ amountRows;
 		String sGetDiceValueFirstRun = "SELECT diceValue AS getDice from dices where kastID = 0";
 
 		try {
@@ -436,7 +434,6 @@ public class MainWindow {
 				db.execute(sGetDiceValueFirstRun);
 
 				runThis = sGetDiceValueFirstRun;
-				firstRun = false;
 			} else {
 				db.execute(sGetDiceValue);
 
@@ -449,7 +446,7 @@ public class MainWindow {
 				while (rs.next()) {
 					int getColoumn = rs.getInt("getDice");
 					System.out.println("Value in newest row: " + getColoumn);
-					setDbValue(Integer.toString(getColoumn));
+					lblDatabasevalue.setText(Integer.toString(getColoumn));
 				}
 			} finally {
 				try {
@@ -465,11 +462,7 @@ public class MainWindow {
 		}
 	}
 
-	public static int getRows() throws Exception {
-		String sDriver = "jdbc:sqlite";
-		String sDatabaseToUse = "diceRolls.db";
-		String sDbUrl = sDriver + ":" + sDatabaseToUse;
-		Database db = new Database(sDbUrl);
+	public int getRows() throws Exception {
 
 		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM dices";
 
@@ -500,13 +493,5 @@ public class MainWindow {
 
 		return rows;
 	}
-	
-	
-	public static void setDbValue(String dbValue) {
-		System.out.println("Streng sat " + dbValue);
-		DbValue = dbValue;
-		lblResult.setText("0");
-	}
+
 }
-
-

@@ -2,8 +2,11 @@ package otg;
 
 public class DiceHandler {
 
-	public DiceHandler(int i) {
-		// TODO Auto-generated constructor stub
+	public int DiceHandler(int diceVal, int existingVal) {
+		int randomInt = (int) (Math.random() * diceVal + 1);
+		int o = existingVal + randomInt;
+		existingVal = diceVal;
+		return o;
 	}
 	
 }
