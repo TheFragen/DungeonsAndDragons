@@ -69,6 +69,7 @@ public class MainWindow {
 	public MainWindow() throws Exception {
 		databaseConnection();
 		initialize();
+//		DungeonMaster();
 		
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
@@ -89,6 +90,15 @@ public class MainWindow {
 			}
 		});
 		tableThread.start();
+	}
+	
+	public void DungeonMaster() {
+		frame = new JFrame("D&D Dice Roller");
+		frame.setResizable(false);
+		frame.setBounds(100, 100, 256, 457);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		DungeonMasterUI dungeonMaster = new DungeonMasterUI();
+		frame.getContentPane().add(dungeonMaster);
 	}
 
 	/**
