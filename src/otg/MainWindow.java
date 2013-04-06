@@ -5,6 +5,8 @@ import java.awt.EventQueue;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Color;
 import javax.swing.SwingConstants;
 import javax.swing.JPanel;
@@ -18,6 +20,7 @@ import java.sql.*;
 import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.FlowLayout;
 
 public class MainWindow {
 
@@ -28,12 +31,12 @@ public class MainWindow {
 
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
-	private static JLabel lblResult;
-	private static JLabel lblDatabasevalue;
+	private JLabel lblResult;
+	private JLabel lblDatabasevalue;
+	private JLabel lblActiveplayer;
 	static int rows = 0;
 
 	static int valueInRow = 0;
-	static String DbValue = "Null";
 
 	int randomInt = 0;
 	int rolledValue;
@@ -55,9 +58,7 @@ public class MainWindow {
 			}
 		});
 		t.start();
-		
 
-		
 	}
 
 	/**
@@ -68,15 +69,16 @@ public class MainWindow {
 	 */
 	public MainWindow() throws Exception {
 		databaseConnection();
-		initialize();
-//		DungeonMaster();
-		
+//		initialize();
+		DungeonMaster();
+
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-						updateUserInterface();
+//						updateUserInterface();
+						getActiveUser();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -91,8 +93,8 @@ public class MainWindow {
 		});
 		tableThread.start();
 	}
-	
-	public void DungeonMaster() {
+
+	public void DungeonMaster() throws Exception {
 		frame = new JFrame("D&D Dice Roller");
 		frame.setResizable(false);
 		frame.setBounds(100, 100, 256, 457);
@@ -308,11 +310,11 @@ public class MainWindow {
 		JLabel lblRoll = new JLabel("Roll!");
 		lblRoll.setFont(new Font("Verdana", Font.BOLD, 23));
 		lblRoll.setHorizontalAlignment(SwingConstants.CENTER);
-		lblRoll.setBounds(117, 90, 88, 29);
+		lblRoll.setBounds(118, 65, 88, 29);
 		frame.getContentPane().add(lblRoll);
 
 		JPanel rollpanel = new JPanel();
-		rollpanel.setBounds(105, 125, 112, 169);
+		rollpanel.setBounds(106, 100, 112, 169);
 		frame.getContentPane().add(rollpanel);
 		rollpanel.setLayout(null);
 
@@ -336,7 +338,7 @@ public class MainWindow {
 				System.out.println("Cleared");
 			}
 		});
-		btnClear.setBounds(117, 324, 89, 23);
+		btnClear.setBounds(118, 306, 89, 23);
 		frame.getContentPane().add(btnClear);
 
 		// Knap der ruller terningerne og sender det til en database
@@ -348,31 +350,45 @@ public class MainWindow {
 				} else {
 					if (diceRolling == 0) {
 						System.out.println("Please select a dice first");
-					} else {
-						System.out.println("Dices rolled, value: "
-								+ rolledValue);
-						lblResult.setText(Integer.toString(rolledValue));
-						int id = 0;
+					} else {					
 						try {
-							id = getRows() + 1;
-						} catch (Exception e2) {
-							// TODO Auto-generated catch block
-							e2.printStackTrace();
-						}
-						int diceVal = rolledValue;
+							if (isPlayerTurn(user) == true) {
+								System.out.println("Dices rolled, value: " + rolledValue);
+								lblResult.setText(Integer.toString(rolledValue));
+								int id = 0;
+								try {
+									id = getRows("dices") + 1;
+								} catch (Exception e2) {
+									// TODO Auto-generated catch block
+									e2.printStackTrace();
+								}
+								int diceVal = rolledValue;
 
-						try {
-							updateTable(id, user, diceVal);
-							System.out
-									.println("Database updated with new value");
-						} catch (Exception e1) {
-							e1.printStackTrace();
+								try {
+									updateTable(id, user, diceVal);
+									System.out.println("Database updated with new value");
+								} catch (Exception e1) {
+									e1.printStackTrace();
+
+								}
+							} else {
+								diceRolling = 0;
+								lblResult.setText("0");
+								txtRollingPane.setText("Nothing");
+								RollingEmpty = false;
+								rolledValue = 0;
+								System.out.println("Cleared");
+							}
+						} catch (Exception e3) {
+							// TODO Auto-generated catch block
+							e3.printStackTrace();
 						}
+
 					}
 				}
 			}
 		});
-		btnRollDice.setBounds(117, 298, 89, 23);
+		btnRollDice.setBounds(118, 280, 89, 23);
 		frame.getContentPane().add(btnRollDice);
 
 		// Sæt et brugernavn
@@ -383,6 +399,11 @@ public class MainWindow {
 				if (keyCode == KeyEvent.VK_ENTER) {
 					String s = txtUsername.getText();
 					user = s;
+					try {
+						setUsername(getRows("users"), user);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
 					System.out.println("Username is set " + user);
 				}
 			}
@@ -392,22 +413,40 @@ public class MainWindow {
 		txtUsername.setBounds(117, 21, 86, 20);
 		frame.getContentPane().add(txtUsername);
 		txtUsername.setColumns(10);
-
-		// Lav label der henter værdi fra database
-
-		lblDatabasevalue = new JLabel(DbValue);
-		lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
-		lblDatabasevalue.setBounds(117, 360, 88, 41);
-		frame.getContentPane().add(lblDatabasevalue);
+		
+		JPanel databaseValue = new JPanel();
+		databaseValue.setBounds(98, 340, 142, 78);
+		frame.getContentPane().add(databaseValue);
+		databaseValue.setLayout(null);
+		
+		JLabel lblPlayerCurrentlyRolling = new JLabel("Player currently rolling:");
+		lblPlayerCurrentlyRolling.setBounds(0, 5, 142, 14);
+		databaseValue.add(lblPlayerCurrentlyRolling);
+		lblPlayerCurrentlyRolling.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		lblActiveplayer = new JLabel("None");
+		lblActiveplayer.setBounds(0, 20, 142, 14);
+		databaseValue.add(lblActiveplayer);
+		lblActiveplayer.setHorizontalAlignment(SwingConstants.CENTER);
+		
+				// Lav label der henter værdi fra database
+		
+				lblDatabasevalue = new JLabel("Null");
+				lblDatabasevalue.setBounds(46, 39, 53, 39);
+				databaseValue.add(lblDatabasevalue);
+				lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
+				lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
 
 		frame.getContentPane().add(panel);
-
 	}
+	
 
-	private void databaseConnection() throws Exception {
+	public void databaseConnection() throws Exception {
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
+		String sDropUsers = "DROP TABLE IF EXISTS users";
 		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric)";
+		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
 		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0)";
 
 		try {
@@ -415,6 +454,8 @@ public class MainWindow {
 			db.execute(sDropTable);
 			db.execute(sMakeTable);
 			db.execute(sInsert);
+//			db.execute(sDropUsers);
+			db.execute(sMakeUsers);
 
 		} finally {
 			try {
@@ -423,24 +464,106 @@ public class MainWindow {
 		}
 	}
 
+	
 	public void updateTable(int id, String userName, int dice) throws Exception {
-		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'"
-				+ userName + "'" + "," + dice + ")";
+		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + ")";
 
 		db.execute(sMakeInsert);
 	}
 
+	
+	public void setUsername(int id, String userName) throws Exception {
+		int id2 = id + 1;
+		String sMakeInsert = "INSERT INTO users VALUES(" + id2 + "," + "'" + userName + "'" + "," + 0 + ")";
+
+		ResultSet rs = db.executeQuery("SELECT userName FROM users WHERE userName LIKE '" + userName + "'");
+		if (rs.next()) {
+			JOptionPane.showMessageDialog(null, "Please select another name");
+		} else {
+			db.execute(sMakeInsert);
+		}
+		try {
+			rs.close();
+		} catch (Exception ignore) {
+		}
+	}
+	
+
+	public boolean isPlayerTurn(String user) throws Exception {
+		String sGetTurn = "SELECT isTurn AS getTurn from users where userName = '" + user + "'";
+		boolean turn = false;
+		
+		try {
+			db.execute(sGetTurn);
+			ResultSet rs = db.executeQuery(sGetTurn);
+
+			try {
+				while (rs.next()) {
+					int getTurn = rs.getInt("getTurn");
+					if(getTurn == 0){
+						turn = false;
+						JOptionPane.showMessageDialog(null, "It is not your turn");
+					}
+					if(getTurn == 1){
+						turn = true;
+					}
+					
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+		return turn;
+	}
+	
+	
+	public void getActiveUser() throws Exception {
+		String sActivePlayer = "SELECT userName AS activeUser from users where isTurn = 1";
+
+		try {
+			db.execute(sActivePlayer);
+			ResultSet rs = db.executeQuery(sActivePlayer);
+			try {
+				while (rs.next()) {
+					String getActiveUser = rs.getString("activeUser");
+//					lblActiveplayer.setText(getActiveUser);
+					System.out.println("Current active user: " + getActiveUser);
+				}
+
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+	}
+	
+	
 	public void updateUserInterface() throws Exception {
 
-		int amountRows = getRows();
+		int amountRows = getRows("dices");
 
-		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = "
-				+ amountRows;
+		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = 2" + amountRows;
 		String sGetDiceValueFirstRun = "SELECT diceValue AS getDice from dices where kastID = 0";
+		
 
 		try {
 			String runThis = "Null";
-			if (rows == 1) {
+			if (amountRows == 1) {
 				db.execute(sGetDiceValueFirstRun);
 
 				runThis = sGetDiceValueFirstRun;
@@ -451,13 +574,13 @@ public class MainWindow {
 			}
 
 			ResultSet rs = db.executeQuery(runThis);
-
 			try {
 				while (rs.next()) {
 					int getColoumn = rs.getInt("getDice");
 					System.out.println("Value in newest row: " + getColoumn);
 					lblDatabasevalue.setText(Integer.toString(getColoumn));
 				}
+
 			} finally {
 				try {
 					rs.close();
@@ -472,9 +595,9 @@ public class MainWindow {
 		}
 	}
 
-	public int getRows() throws Exception {
-
-		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM dices";
+	
+	public int getRows(String s) throws Exception {
+		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM " + s;
 
 		try {
 			db.execute(sMakeUpdate);
@@ -485,7 +608,7 @@ public class MainWindow {
 				while (rs.next()) {
 					int sResult = rs.getInt("rowNumber");
 					rows = sResult;
-					System.out.println("Number of rows " + sResult + " ");
+					System.out.println("Number of rows in " + s + " is: "+ rows);
 
 				}
 			} finally {
@@ -503,5 +626,4 @@ public class MainWindow {
 
 		return rows;
 	}
-
 }
