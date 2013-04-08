@@ -1,10 +1,8 @@
 package otg;
 
-import javax.swing.ButtonModel;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JToggleButton;
 
@@ -17,16 +15,59 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 public class DungeonMasterUI extends JPanel {
+
+	private static final long serialVersionUID = 2607816291271048284L;
 	int playersRolling = 0;
+	int rows = 0;
+	private JLabel lblrolledValue;
+	private JLabel lblPlayernames;
+	private JLabel lblDices;
+	private JLabel lblGamename;
+	String currentUser = "Null";
+	String current = "None";
+	
+	
+	JToggleButton btnPlayerone;
+	JToggleButton btnPlayertwo;
+	JToggleButton btnPlayerthree;
+	JToggleButton btnPlayerfour;
+	JToggleButton btnPlayerfive;
+	JToggleButton btnPlayersix;
+	
+	
+	
+	
 	
 	String sDriver = "jdbc:sqlite:diceRolls.db";
 	Database db = new Database(sDriver);
 
 	public DungeonMasterUI() throws Exception{
+		initialize();
+		Thread feedDiceValue = new Thread(new Runnable() {
+			public void run() {
+
+				for (int i = 0; i == 0; i = 0) {
+					try {
+						feedValue();
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});feedDiceValue.start();
+		
+	}
+		
+		public void initialize() throws Exception {
+		
 		ImagePanel panel = new ImagePanel(
 				new ImageIcon("res/background.jpg").getImage());
 		setLayout(null);
@@ -35,12 +76,17 @@ public class DungeonMasterUI extends JPanel {
 		playerPanel.setBounds(10, 56, 236, 95);
 		add(playerPanel);
 
-		final JToggleButton btnPlayerone = new JToggleButton("playerOne");
+		btnPlayerone = new JToggleButton("playerOne");
 		btnPlayerone.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayerone.isSelected() == true) {
 					try {
-						setActiveUser(getUser(0), 1);
+						if(playersRolling == 1){
+							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
+						} else {
+							setActiveUser(getUser(0), 1);
+							playersRolling = 1;
+						}					
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -61,18 +107,23 @@ public class DungeonMasterUI extends JPanel {
 		}
 		playerPanel.add(btnPlayerone);
 
-		final JToggleButton btnPlayertwo = new JToggleButton("playerTwo");
+		btnPlayertwo = new JToggleButton("playerTwo");
 		btnPlayertwo.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayertwo.isSelected() == true) {
 					try {
+						if(playersRolling == 1){
+							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
+						} else {
 						setActiveUser(getUser(1), 1);
+						playersRolling = 1;
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
 					try {
-						setActiveUser(getUser(1), 0);
+						setActiveUser(getUser(1), 0);			
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -86,17 +137,22 @@ public class DungeonMasterUI extends JPanel {
 		}
 		playerPanel.add(btnPlayertwo);
 
-		final JToggleButton btnPlayerthree = new JToggleButton("playerThree");
+		btnPlayerthree = new JToggleButton("playerThree");
 		btnPlayerthree.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayerthree.isSelected() == true) {
-					try {
-						setActiveUser(getUser(2), 1);
+					try {	
+						if (playersRolling == 1) {
+							JOptionPane.showMessageDialog(null, "Only one player at a time can roll");
+						} else {
+							setActiveUser(getUser(2), 1);
+							playersRolling = 1;
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
-					try {
+					try {					
 						setActiveUser(getUser(2), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -111,17 +167,22 @@ public class DungeonMasterUI extends JPanel {
 		}
 		playerPanel.add(btnPlayerthree);
 
-		final JToggleButton btnPlayerfour = new JToggleButton("playerFour");
+		btnPlayerfour = new JToggleButton("playerFour");
 		btnPlayerfour.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayerfour.isSelected() == true) {
-					try {
+					try {			
+						if(playersRolling == 1){
+							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
+						} else {
 						setActiveUser(getUser(3), 1);
+						playersRolling = 1;
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
-					try {
+					try {					
 						setActiveUser(getUser(3), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -136,17 +197,22 @@ public class DungeonMasterUI extends JPanel {
 		}
 		playerPanel.add(btnPlayerfour);
 
-		final JToggleButton btnPlayerfive = new JToggleButton("playerFive");
+		btnPlayerfive = new JToggleButton("playerFive");
 		btnPlayerfive.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayerfive.isSelected() == true) {
-					try {
+					try {	
+						if(playersRolling == 1){
+							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
+						} else {
 						setActiveUser(getUser(4), 1);
+						playersRolling = 1;
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
-					try {
+					try {					
 						setActiveUser(getUser(4), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -161,17 +227,22 @@ public class DungeonMasterUI extends JPanel {
 		}
 		playerPanel.add(btnPlayerfive);
 
-		final JToggleButton btnPlayersix = new JToggleButton("playerSix");
+		btnPlayersix = new JToggleButton("playerSix");
 		btnPlayersix.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
 				if (btnPlayersix.isSelected() == true) {
-					try {
+					try {	
+						if(playersRolling == 1){
+							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
+						} else {
 						setActiveUser(getUser(5), 1);
+						playersRolling = 1;
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
-					try {
+					try {					
 						setActiveUser(getUser(5), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -191,25 +262,33 @@ public class DungeonMasterUI extends JPanel {
 		add(dicePanel);
 		dicePanel.setLayout(null);
 
-		JLabel lblPlayernames = new JLabel("Player One has rolled: ");
-		lblPlayernames.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblPlayernames = new JLabel("Noone is currently rolling");
+		lblPlayernames.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		lblPlayernames.setBounds(10, 11, 136, 14);
 		dicePanel.add(lblPlayernames);
 
-		JLabel lblrolledValue = new JLabel("0");
-		lblrolledValue.setBounds(92, 79, 54, 120);
-		lblrolledValue.setFont(new Font("Tahoma", Font.PLAIN, 99));
+		lblrolledValue = new JLabel("00");	
+		lblrolledValue.setBounds(60, 79, 124, 120);	
 		dicePanel.add(lblrolledValue);
+		lblrolledValue.setHorizontalAlignment(SwingConstants.CENTER);
+		lblrolledValue.setFont(new Font("Tahoma", Font.PLAIN, 99));
 
-		JLabel lblDices = new JLabel("D20, D4");
+		lblDices = new JLabel("Nothing");
 		lblDices.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		lblDices.setBounds(143, 11, 83, 14);
 		dicePanel.add(lblDices);
 
-		JLabel lblGamename = new JLabel("Attack of the Swedes");
+		lblGamename = new JLabel("Attack of the Swedes");
+		lblGamename.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String s = JOptionPane.showInputDialog(null, "Please enter you game name : ", "Game name", 1);
+				lblGamename.setText(s);
+			}
+		});
 		lblGamename.setHorizontalAlignment(SwingConstants.CENTER);
 		lblGamename.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblGamename.setBounds(10, 11, 236, 14);
+		lblGamename.setBounds(10, 11, 236, 20);
 		add(lblGamename);
 
 	}
@@ -246,9 +325,70 @@ public class DungeonMasterUI extends JPanel {
 	
 	public void setActiveUser(String user, int state) throws Exception {
 
-		String sUpdateActive = "UPDATE users SET isTurn = " + state + " WHERE userName = '" + user + "'";
+		if (state == 1) {
+			String sUpdateActive = "UPDATE users SET isTurn = " + state + " WHERE userName = '" + user + "'";
+			db.execute(sUpdateActive);
+			lblPlayernames.setText("Player " + user + " has rolled: ");
+			playersRolling = 1;
+			current = user;
+		}
 
-		db.execute(sUpdateActive);
+		if (state == 0) {
+			if (playersRolling == 1) {
+				if (current.equals(user)) {
+					lblPlayernames.setText("Noone is currently rolling");
+					String sUpdateActive = "UPDATE users SET isTurn = " + state + " WHERE userName = '" + user + "'";
+					db.execute(sUpdateActive);
+					playersRolling = 0;
+					current = "None";
+				}
+			}
+		}
 
 	}
+	
+	public String getRolledDices() throws Exception {
+		String RolledDices = "Null";
+		
+		int amountRows = db.getRows("dices");
+		
+		String sGetRolledDices = "SELECT rolledDices AS getRolledDices from dices where kastID = " + amountRows;
+		
+		
+		try {
+
+			db.execute(sGetRolledDices);
+			ResultSet rs = db.executeQuery(sGetRolledDices);
+
+			try {
+				while (rs.next()) {					
+					String sResult = rs.getString("getRolledDices");
+					RolledDices = sResult;
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+		
+		return RolledDices;
+	}
+	
+	public void feedValue() throws Exception {
+
+		int i = db.updateUserInterface();
+		lblrolledValue.setText(Integer.toString(i));
+		
+		lblDices.setText(getRolledDices());
+		
+		System.out.println("Players Rolling " +playersRolling);
+	}
+	
 }

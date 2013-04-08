@@ -1,12 +1,9 @@
 package otg;
 
-import java.awt.EventQueue;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import java.awt.Color;
 import javax.swing.SwingConstants;
 import javax.swing.JPanel;
@@ -16,16 +13,16 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTextPane;
 import javax.swing.JButton;
 import java.sql.*;
-
 import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.FlowLayout;
 
 public class MainWindow {
 
 	String sDriver = "jdbc:sqlite:diceRolls.db";
 	Database db = new Database(sDriver);
+	
+	
 
 	private JFrame frame;
 
@@ -77,8 +74,9 @@ public class MainWindow {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-//						updateUserInterface();
-						getActiveUser();
+						db.updateUserInterface();
+//						setActiveUser();
+						db.getActiveUser();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -346,10 +344,10 @@ public class MainWindow {
 		btnRollDice.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (user == "Null") {
-					System.out.println("Please enter a username");
+					JOptionPane.showMessageDialog(null, "Please enter a username");
 				} else {
 					if (diceRolling == 0) {
-						System.out.println("Please select a dice first");
+						JOptionPane.showMessageDialog(null, "Please select a dice first");
 					} else {					
 						try {
 							if (isPlayerTurn(user) == true) {
@@ -357,15 +355,15 @@ public class MainWindow {
 								lblResult.setText(Integer.toString(rolledValue));
 								int id = 0;
 								try {
-									id = getRows("dices") + 1;
+									id = db.getRows("dices") + 1;
 								} catch (Exception e2) {
-									// TODO Auto-generated catch block
 									e2.printStackTrace();
 								}
 								int diceVal = rolledValue;
 
 								try {
-									updateTable(id, user, diceVal);
+									updateTable(id, user, diceVal,
+											txtRollingPane.getText());
 									System.out.println("Database updated with new value");
 								} catch (Exception e1) {
 									e1.printStackTrace();
@@ -400,7 +398,7 @@ public class MainWindow {
 					String s = txtUsername.getText();
 					user = s;
 					try {
-						setUsername(getRows("users"), user);
+						setUsername(db.getRows("users"), user);
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -444,10 +442,10 @@ public class MainWindow {
 	public void databaseConnection() throws Exception {
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
-		String sDropUsers = "DROP TABLE IF EXISTS users";
-		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric)";
+//		String sDropUsers = "DROP TABLE IF EXISTS users";
+		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
 		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
-		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0)";
+		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0, 'DiceRolls')";
 
 		try {
 
@@ -465,8 +463,9 @@ public class MainWindow {
 	}
 
 	
-	public void updateTable(int id, String userName, int dice) throws Exception {
-		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + ")";
+	public void updateTable(int id, String userName, int dice, String rolledDices) throws Exception {
+		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + "," + "'" + rolledDices + "'" +")";
+		System.out.println(sMakeInsert);
 
 		db.execute(sMakeInsert);
 	}
@@ -524,106 +523,11 @@ public class MainWindow {
 		return turn;
 	}
 	
-	
-	public void getActiveUser() throws Exception {
-		String sActivePlayer = "SELECT userName AS activeUser from users where isTurn = 1";
-
-		try {
-			db.execute(sActivePlayer);
-			ResultSet rs = db.executeQuery(sActivePlayer);
-			try {
-				while (rs.next()) {
-					String getActiveUser = rs.getString("activeUser");
-//					lblActiveplayer.setText(getActiveUser);
-					System.out.println("Current active user: " + getActiveUser);
-				}
-
-			} finally {
-				try {
-					rs.close();
-				} catch (Exception ignore) {
-				}
-			}
-		} finally {
-			try {
-				((ResultSet) db).close();
-			} catch (Exception ignore) {
-			}
-		}
-	}
-	
-	
-	public void updateUserInterface() throws Exception {
-
-		int amountRows = getRows("dices");
-
-		String sGetDiceValue = "SELECT diceValue AS getDice from dices where kastID = 2" + amountRows;
-		String sGetDiceValueFirstRun = "SELECT diceValue AS getDice from dices where kastID = 0";
+	public void setActiveUser() throws Exception {
+		String s = db.getActiveUser();
+		lblActiveplayer.setText(s);
 		
-
-		try {
-			String runThis = "Null";
-			if (amountRows == 1) {
-				db.execute(sGetDiceValueFirstRun);
-
-				runThis = sGetDiceValueFirstRun;
-			} else {
-				db.execute(sGetDiceValue);
-
-				runThis = sGetDiceValue;
-			}
-
-			ResultSet rs = db.executeQuery(runThis);
-			try {
-				while (rs.next()) {
-					int getColoumn = rs.getInt("getDice");
-					System.out.println("Value in newest row: " + getColoumn);
-					lblDatabasevalue.setText(Integer.toString(getColoumn));
-				}
-
-			} finally {
-				try {
-					rs.close();
-				} catch (Exception ignore) {
-				}
-			}
-		} finally {
-			try {
-				((ResultSet) db).close();
-			} catch (Exception ignore) {
-			}
-		}
+		lblDatabasevalue.setText(Integer.toString(db.updateUserInterface()));
 	}
 
-	
-	public int getRows(String s) throws Exception {
-		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM " + s;
-
-		try {
-			db.execute(sMakeUpdate);
-
-			ResultSet rs = db.executeQuery(sMakeUpdate);
-
-			try {
-				while (rs.next()) {
-					int sResult = rs.getInt("rowNumber");
-					rows = sResult;
-					System.out.println("Number of rows in " + s + " is: "+ rows);
-
-				}
-			} finally {
-				try {
-					rs.close();
-				} catch (Exception ignore) {
-				}
-			}
-		} finally {
-			try {
-				((ResultSet) db).close();
-			} catch (Exception ignore) {
-			}
-		}
-
-		return rows;
-	}
 }

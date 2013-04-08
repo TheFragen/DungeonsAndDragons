@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 public class ImagePanel extends JPanel {
 
+	private static final long serialVersionUID = -2606461026466405385L;
 	private Image img;
 
 	  public ImagePanel(String img) {
