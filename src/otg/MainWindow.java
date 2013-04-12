@@ -16,12 +16,13 @@ import java.sql.*;
 import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 public class MainWindow {
 
 	String sDriver = "jdbc:sqlite:diceRolls.db";
 	Database db = new Database(sDriver);
-	
+	FTP ftp = new FTP();
 	
 
 	private JFrame frame;
@@ -31,6 +32,7 @@ public class MainWindow {
 	private JLabel lblResult;
 	private JLabel lblDatabasevalue;
 	private JLabel lblActiveplayer;
+	private JLabel lblFtpimage;
 	static int rows = 0;
 
 	static int valueInRow = 0;
@@ -66,17 +68,17 @@ public class MainWindow {
 	 */
 	public MainWindow() throws Exception {
 		databaseConnection();
-//		initialize();
-		DungeonMaster();
+		initialize();
+//		DungeonMaster();
 
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-						db.updateUserInterface();
-//						setActiveUser();
+						setActiveUser();
 						db.getActiveUser();
+						setNewNotification();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -434,6 +436,25 @@ public class MainWindow {
 				databaseValue.add(lblDatabasevalue);
 				lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
 				lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
+		
+		lblFtpimage = new JLabel("ftpImage");
+		lblFtpimage.setBounds(220, 5, 25, 25);
+		lblFtpimage.setIcon(new ImageIcon("res/notificationNone.png"));
+		frame.getContentPane().add(lblFtpimage);
+		
+		JButton btnGetimage = new JButton("getImage");
+		btnGetimage.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				try {
+					setNewNotification();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnGetimage.setBounds(87, 43, 89, 23);
+		frame.getContentPane().add(btnGetimage);
 
 		frame.getContentPane().add(panel);
 	}
@@ -443,8 +464,10 @@ public class MainWindow {
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
 //		String sDropUsers = "DROP TABLE IF EXISTS users";
+		String sDropImages = "Drop TABLE IF EXISTS images";
 		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
 		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
+		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text)";
 		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0, 'DiceRolls')";
 
 		try {
@@ -454,6 +477,8 @@ public class MainWindow {
 			db.execute(sInsert);
 //			db.execute(sDropUsers);
 			db.execute(sMakeUsers);
+//			db.execute(sDropImages);
+			db.execute(sMakeImages);
 
 		} finally {
 			try {
@@ -465,7 +490,6 @@ public class MainWindow {
 	
 	public void updateTable(int id, String userName, int dice, String rolledDices) throws Exception {
 		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + "," + "'" + rolledDices + "'" +")";
-		System.out.println(sMakeInsert);
 
 		db.execute(sMakeInsert);
 	}
@@ -477,7 +501,7 @@ public class MainWindow {
 
 		ResultSet rs = db.executeQuery("SELECT userName FROM users WHERE userName LIKE '" + userName + "'");
 		if (rs.next()) {
-			JOptionPane.showMessageDialog(null, "Please select another name");
+			JOptionPane.showMessageDialog(null, "Please select another name.");
 		} else {
 			db.execute(sMakeInsert);
 		}
@@ -501,7 +525,7 @@ public class MainWindow {
 					int getTurn = rs.getInt("getTurn");
 					if(getTurn == 0){
 						turn = false;
-						JOptionPane.showMessageDialog(null, "It is not your turn");
+						JOptionPane.showMessageDialog(null, "It is not your turn.");
 					}
 					if(getTurn == 1){
 						turn = true;
@@ -529,5 +553,43 @@ public class MainWindow {
 		
 		lblDatabasevalue.setText(Integer.toString(db.updateUserInterface()));
 	}
+	
+	public void setNewNotification() throws Exception {
+		
+		
+		String sSetNewNotification = "SELECT imageName AS getImage from images where imageID = " + db.getRows("images");
+		
+		try {
+			db.execute(sSetNewNotification);
+			ResultSet rs = db.executeQuery(sSetNewNotification);
 
+			try {
+				while (rs.next()) {
+					String getImage = rs.getString("getImage");
+					System.out.println("notifications/" +getImage);
+					File file = new File("notifications/" + getImage);
+					System.out.println(file.isFile());
+					if (file.isFile() == true) {
+						System.out.println("File already exists");
+					}
+					if (file.isFile() == false) {
+						System.out.println("New file downloaded");
+						ftp.getFile(getImage);
+						lblFtpimage.setIcon(new ImageIcon("res/notificationNew.png"));
+					}
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+	}
+	
 }

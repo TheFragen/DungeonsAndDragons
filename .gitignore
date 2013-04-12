@@ -16,6 +16,10 @@ local.properties
 .settings/
 .loadpath
 
+# User created
+notifications/
+/src/otg/FTPPass.java
+
 # External tool builders
 .externalToolBuilders/
 

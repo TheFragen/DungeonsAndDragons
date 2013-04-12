@@ -1,6 +1,7 @@
 package otg;
 
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -15,6 +16,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+
+import javax.swing.JButton;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class DungeonMasterUI extends JPanel {
 
@@ -25,6 +32,7 @@ public class DungeonMasterUI extends JPanel {
 	private JLabel lblPlayernames;
 	private JLabel lblDices;
 	private JLabel lblGamename;
+	final JFileChooser fc = new JFileChooser();
 	String currentUser = "Null";
 	String current = "None";
 	
@@ -36,12 +44,10 @@ public class DungeonMasterUI extends JPanel {
 	JToggleButton btnPlayerfive;
 	JToggleButton btnPlayersix;
 	
-	
-	
-	
-	
+
 	String sDriver = "jdbc:sqlite:diceRolls.db";
 	Database db = new Database(sDriver);
+	FTP ftp = new FTP();
 
 	public DungeonMasterUI() throws Exception{
 		initialize();
@@ -62,8 +68,7 @@ public class DungeonMasterUI extends JPanel {
 					}
 				}
 			}
-		});feedDiceValue.start();
-		
+		});feedDiceValue.start();		
 	}
 		
 		public void initialize() throws Exception {
@@ -71,6 +76,19 @@ public class DungeonMasterUI extends JPanel {
 		ImagePanel panel = new ImagePanel(
 				new ImageIcon("res/background.jpg").getImage());
 		setLayout(null);
+		
+				lblGamename = new JLabel("Attack of the Swedes");
+				lblGamename.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						String s = JOptionPane.showInputDialog(null, "Please enter you game name : ", "Game name", 1);
+						lblGamename.setText(s);
+					}
+				});
+				lblGamename.setHorizontalAlignment(SwingConstants.CENTER);
+				lblGamename.setFont(new Font("Tahoma", Font.PLAIN, 16));
+				lblGamename.setBounds(10, 11, 236, 20);
+				add(lblGamename);
 
 		JPanel playerPanel = new JPanel();
 		playerPanel.setBounds(10, 56, 236, 95);
@@ -258,7 +276,7 @@ public class DungeonMasterUI extends JPanel {
 		playerPanel.add(btnPlayersix);
 
 		JPanel dicePanel = new JPanel();
-		dicePanel.setBounds(10, 162, 236, 284);
+		dicePanel.setBounds(10, 162, 236, 209);
 		add(dicePanel);
 		dicePanel.setLayout(null);
 
@@ -268,28 +286,52 @@ public class DungeonMasterUI extends JPanel {
 		dicePanel.add(lblPlayernames);
 
 		lblrolledValue = new JLabel("00");	
-		lblrolledValue.setBounds(60, 79, 124, 120);	
+		lblrolledValue.setBounds(60, 55, 124, 120);	
 		dicePanel.add(lblrolledValue);
 		lblrolledValue.setHorizontalAlignment(SwingConstants.CENTER);
 		lblrolledValue.setFont(new Font("Tahoma", Font.PLAIN, 99));
 
 		lblDices = new JLabel("Nothing");
 		lblDices.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblDices.setBounds(143, 11, 83, 14);
+		lblDices.setBounds(153, 10, 83, 14);
 		dicePanel.add(lblDices);
-
-		lblGamename = new JLabel("Attack of the Swedes");
-		lblGamename.addMouseListener(new MouseAdapter() {
+		
+		JPanel ftpPanel = new JPanel();
+		ftpPanel.setBounds(10, 382, 236, 33);
+		add(ftpPanel);
+		
+		JButton btnStorefile = new JButton("Send file to players");
+		ftpPanel.add(btnStorefile);
+		btnStorefile.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				String s = JOptionPane.showInputDialog(null, "Please enter you game name : ", "Game name", 1);
-				lblGamename.setText(s);
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("JPG, BMP, TIFF and PNG Images", "jpg", "tiff", "png");
+				fc.setFileFilter(filter);
+				int returnVal = fc.showOpenDialog(DungeonMasterUI.this);
+
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					String filename = file.getName();
+					String imageType = JOptionPane.showInputDialog(null,"Image type : ","Please input your image type (Monster, location etc.)",1);
+					if (!imageType.equals("")) {
+						try {
+							ftp.storeFile(file.getPath(), filename);
+							JOptionPane.showMessageDialog(null,"Your selected image was uploaded");
+							int id = db.getRows("images") + 1;
+							uploadImage(id, file.getName(), imageType);
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					} else {
+						JOptionPane.showMessageDialog(null,
+								"Choose another image type");
+					}
+				} else {
+					System.out.println("Cancelled file choosing operation.");
+				}
 			}
 		});
-		lblGamename.setHorizontalAlignment(SwingConstants.CENTER);
-		lblGamename.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblGamename.setBounds(10, 11, 236, 20);
-		add(lblGamename);
 
 	}
 
@@ -390,5 +432,12 @@ public class DungeonMasterUI extends JPanel {
 		
 		System.out.println("Players Rolling " +playersRolling);
 	}
+	
+	public void uploadImage(int id, String imageName, String imageType) throws Exception {
+		String sMakeInsert = "INSERT INTO images VALUES(" + id + "," + "'" + imageName + "'" + "," + "'" + imageType + "'" +")";
+
+		db.execute(sMakeInsert);
+	}
+	
 	
 }
