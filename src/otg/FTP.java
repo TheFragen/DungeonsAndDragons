@@ -42,7 +42,7 @@ public class FTP {
 			Long T1 = System.currentTimeMillis ();
 			client.storeFile(filename, fis);
 			Long T2 = System.currentTimeMillis ();
-			System.out.println("File was upload in: " +(T2-T1)/1000 + " seconds");
+			System.out.println("File was upload in: " +(T2-T1)/100 + " milliseconds");
 			fis.close();
 		
 		} catch (IOException e) {
