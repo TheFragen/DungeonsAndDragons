@@ -1,14 +1,10 @@
 package otg;
 
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import java.awt.Color;
-import java.awt.Image;
-
 import javax.swing.SwingConstants;
 import javax.swing.JPanel;
 import java.awt.Font;
@@ -21,10 +17,6 @@ import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 
 public class MainWindow {
 
@@ -34,17 +26,16 @@ public class MainWindow {
 	
 
 	private JFrame frame;
-	private JLabel ftpImage;
+
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
 	private JLabel lblResult;
 	private JLabel lblDatabasevalue;
 	private JLabel lblActiveplayer;
-	private JLabel lblFtpNotification;
+	private JLabel lblFtpimage;
 	static int rows = 0;
 
 	static int valueInRow = 0;
-	boolean imageActive = false;
 
 	int randomInt = 0;
 	int rolledValue;
@@ -85,7 +76,6 @@ public class MainWindow {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-						System.out.println("Boolean is " +imageActive);
 						setActiveUser();
 						db.getActiveUser();
 						setNewNotification();
@@ -117,7 +107,6 @@ public class MainWindow {
 	 * Initialize the contents of the frame.
 	 * 
 	 * @throws Exception
-	 * @wbp.parser.entryPoint
 	 */
 	private void initialize() {
 
@@ -129,35 +118,6 @@ public class MainWindow {
 		frame.setBounds(100, 100, 256, 457);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
-		
-		ftpImage = new JLabel("ftpImage");
-		ftpImage.setBackground(Color.BLACK);
-		ftpImage.setEnabled(false);
-		ftpImage.setVisible(false);
-		
-
-		
-		lblFtpNotification = new JLabel("ftpImage");
-		lblFtpNotification.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				if(imageActive == false){
-					txtUsername.setEnabled(false);
-					ftpImage.setEnabled(true);
-					ftpImage.setVisible(true);
-					imageActive = true;
-				} else {
-					txtUsername.setEnabled(true);
-					ftpImage.setEnabled(false);
-					ftpImage.setVisible(false);
-					imageActive = false;
-				}
-			}
-		});
-		lblFtpNotification.setBounds(220, 5, 25, 25);
-		lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
-		frame.getContentPane().add(lblFtpNotification);
-		ftpImage.setBounds(0, 0, 250, 429);
-		frame.getContentPane().add(ftpImage);
 
 		JPanel KnapPanel = new JPanel();
 		KnapPanel.setBounds(0, 0, 88, 419);
@@ -476,6 +436,25 @@ public class MainWindow {
 				databaseValue.add(lblDatabasevalue);
 				lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
 				lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
+		
+		lblFtpimage = new JLabel("ftpImage");
+		lblFtpimage.setBounds(220, 5, 25, 25);
+		lblFtpimage.setIcon(new ImageIcon("res/notificationNone.png"));
+		frame.getContentPane().add(lblFtpimage);
+		
+		JButton btnGetimage = new JButton("getImage");
+		btnGetimage.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				try {
+					setNewNotification();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnGetimage.setBounds(87, 43, 89, 23);
+		frame.getContentPane().add(btnGetimage);
 
 		frame.getContentPane().add(panel);
 	}
@@ -588,34 +567,15 @@ public class MainWindow {
 				while (rs.next()) {
 					String getImage = rs.getString("getImage");
 					System.out.println("notifications/" +getImage);
-					File file = new File("notifications/" + getImage);			
+					File file = new File("notifications/" + getImage);
 					System.out.println(file.isFile());
-							
 					if (file.isFile() == true) {
 						System.out.println("File already exists");
 					}
 					if (file.isFile() == false) {
 						System.out.println("New file downloaded");
 						ftp.getFile(getImage);
-						String imageToShow = "Null";
-						
-						//Skalerer billedet fra FTP serveren
-						File file2 = new File("notifications/" +getImage);
-						BufferedImage sourceImage = ImageIO.read(file2);
-						if(sourceImage.getWidth() > 250 || sourceImage.getHeight() > 429){
-							Image scaledImage = sourceImage.getScaledInstance(250, -1, Image.SCALE_SMOOTH);
-							BufferedImage bufferedScaledImage = new BufferedImage(scaledImage.getWidth(null),
-									scaledImage.getHeight(null),BufferedImage.TYPE_INT_RGB);
-							bufferedScaledImage.getGraphics().drawImage(scaledImage, 0, 0, null);
-							File outputfile = new File("notifications/scaled-" +getImage);		
-							ImageIO.write(bufferedScaledImage, "jpeg", outputfile);
-							imageToShow = "notifications/scaled-" +getImage;
-							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
-						} else {
-							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
-							imageToShow = "notifications/" +getImage;
-						}		
-						ftpImage.setIcon(new ImageIcon(imageToShow));
+						lblFtpimage.setIcon(new ImageIcon("res/notificationNew.png"));
 					}
 				}
 			} finally {
@@ -631,4 +591,5 @@ public class MainWindow {
 			}
 		}
 	}
+	
 }

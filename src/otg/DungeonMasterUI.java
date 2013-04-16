@@ -312,7 +312,7 @@ public class DungeonMasterUI extends JPanel {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fc.getSelectedFile();
 					String filename = file.getName();
-					String imageType = JOptionPane.showInputDialog(null,"Please input your image type (Monster, location etc.)","",1);
+					String imageType = JOptionPane.showInputDialog(null,"Image type : ","Please input your image type (Monster, location etc.)",1);
 					if (!imageType.equals("")) {
 						try {
 							ftp.storeFile(file.getPath(), filename);
@@ -324,7 +324,8 @@ public class DungeonMasterUI extends JPanel {
 							e1.printStackTrace();
 						}
 					} else {
-						JOptionPane.showMessageDialog(null,"Choose another image type");
+						JOptionPane.showMessageDialog(null,
+								"Choose another image type");
 					}
 				} else {
 					System.out.println("Cancelled file choosing operation.");
