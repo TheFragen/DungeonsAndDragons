@@ -16,6 +16,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTextPane;
 import javax.swing.JButton;
 import java.sql.*;
+
 import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -31,6 +32,8 @@ public class MainWindow {
 
 	private JFrame frame;
 	private JLabel ftpImage;
+	private JPanel imagePanel;
+	private JLabel ftpImageType;
 
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
@@ -74,8 +77,8 @@ public class MainWindow {
 	 */
 	public MainWindow() throws Exception {
 		databaseConnection();
-		initialize();
-//		DungeonMaster();
+//		initialize();
+		DungeonMaster();
 
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
@@ -83,9 +86,9 @@ public class MainWindow {
 				for (int i = 0; i == 0; i = 0) {
 					try {
 						System.out.println("Boolean is " +imageActive);
-						setActiveUser();
+//						setActiveUser();
 						db.getActiveUser();
-						setNewNotification();
+//						setNewNotification();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -126,22 +129,20 @@ public class MainWindow {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
-		ftpImage = new JLabel("ftpImage");
-		ftpImage.setBackground(Color.BLACK);
-		ftpImage.setEnabled(false);
-		ftpImage.setVisible(false);
-			
-	
 		lblFtpNotification = new JLabel("ftpImage");
 		lblFtpNotification.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (imageActive == false) {
+					imagePanel.setBounds(0, 0, 250, 429);
 					txtUsername.setEnabled(false);
+					txtUsername.setVisible(false);
 					ftpImage.setEnabled(true);
 					ftpImage.setVisible(true);
 					imageActive = true;
 				} else {
+					imagePanel.setBounds(0, 0, -1, -1);
 					txtUsername.setEnabled(true);
+					txtUsername.setVisible(true);
 					ftpImage.setEnabled(false);
 					ftpImage.setVisible(false);
 					imageActive = false;
@@ -151,8 +152,33 @@ public class MainWindow {
 		lblFtpNotification.setBounds(220, 5, 25, 25);
 		lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
 		frame.getContentPane().add(lblFtpNotification);
-		ftpImage.setBounds(0, 0, 250, 429);
-		frame.getContentPane().add(ftpImage);
+					
+		
+		imagePanel = new JPanel();
+		imagePanel.setBackground(Color.WHITE);
+		imagePanel.setBounds(0, 0, -1, -1);
+		frame.getContentPane().add(imagePanel);
+		imagePanel.setLayout(null);
+		
+		ftpImageType = new JLabel("New label");
+		ftpImageType.setForeground(Color.BLACK);
+		ftpImageType.setFont(new Font("Tahoma", Font.PLAIN, 30));
+		ftpImageType.setBounds(5, 375, 246, 43);
+		imagePanel.add(ftpImageType);
+		
+		JLabel lblftpImageType = new JLabel("Image type: ");
+		lblftpImageType.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblftpImageType.setForeground(Color.BLACK);
+		lblftpImageType.setBounds(5, 355, 87, 29);
+		imagePanel.add(lblftpImageType);
+		lblftpImageType.setBackground(Color.BLACK);
+		
+		ftpImage = new JLabel("ftpImage");
+		ftpImage.setBounds(0, 0, 251, 429);
+		imagePanel.add(ftpImage);
+		ftpImage.setBackground(Color.BLACK);
+		ftpImage.setEnabled(false);
+		ftpImage.setVisible(false);
 
 
 		JPanel KnapPanel = new JPanel();
@@ -481,11 +507,11 @@ public class MainWindow {
 	public void databaseConnection() throws Exception {
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
-//		String sDropUsers = "DROP TABLE IF EXISTS users";
+		String sDropUsers = "DROP TABLE IF EXISTS users";
 		String sDropImages = "Drop TABLE IF EXISTS images";
 		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
 		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
-		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text)";
+		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text, hitPoints numeric)";
 		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0, 'DiceRolls')";
 
 		try {
@@ -573,9 +599,9 @@ public class MainWindow {
 	}
 	
 	public void setNewNotification() throws Exception {
+		int i = db.getRows("images") - 1;
 		
-		
-		String sSetNewNotification = "SELECT imageName AS getImage from images where imageID = " + db.getRows("images");
+		String sSetNewNotification = "SELECT imageName AS getImage from images where imageID = " + i ;
 		
 		try {
 			db.execute(sSetNewNotification);
@@ -598,29 +624,23 @@ public class MainWindow {
 						// Skalerer billedet fra FTP serveren
 						File file2 = new File("notifications/" + getImage);
 						BufferedImage sourceImage = ImageIO.read(file2);
-						if (sourceImage.getWidth() > 250
-								|| sourceImage.getHeight() > 429) {
-							Image scaledImage = sourceImage.getScaledInstance(
-									250, -1, Image.SCALE_SMOOTH);
+						if (sourceImage.getWidth() > 250 || sourceImage.getHeight() > 429) {
+							Image scaledImage = sourceImage.getScaledInstance(250, -1, Image.SCALE_SMOOTH);
 							BufferedImage bufferedScaledImage = new BufferedImage(
 									scaledImage.getWidth(null),
 									scaledImage.getHeight(null),
 									BufferedImage.TYPE_INT_RGB);
-							bufferedScaledImage.getGraphics().drawImage(
-									scaledImage, 0, 0, null);
-							File outputfile = new File("notifications/scaled-"
-									+ getImage);
-							ImageIO.write(bufferedScaledImage, "jpeg",
-									outputfile);
+							bufferedScaledImage.getGraphics().drawImage(scaledImage, 0, 0, null);
+							File outputfile = new File("notifications/scaled-" + getImage);
+							ImageIO.write(bufferedScaledImage, "jpeg", outputfile);
 							imageToShow = "notifications/scaled-" + getImage;
-							lblFtpNotification.setIcon(new ImageIcon(
-									"res/notificationNew.png"));
+							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
 						} else {
-							lblFtpNotification.setIcon(new ImageIcon(
-									"res/notificationNew.png"));
+							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
 							imageToShow = "notifications/" + getImage;
 						}
 						ftpImage.setIcon(new ImageIcon(imageToShow));
+						ftpImageType.setText(getImageType());
 
 					}
 				}
@@ -638,4 +658,37 @@ public class MainWindow {
 		}
 	}
 	
+	public String getImageType() throws Exception {
+		String imageType = null;
+		
+		int i = db.getRows("images") - 1;
+		
+		String sGetImageType = "SELECT imageType AS getImageType from images where imageID = " + i;
+		
+		try {
+			db.execute(sGetImageType);
+			ResultSet rs = db.executeQuery(sGetImageType);
+
+			try {
+				while (rs.next()) {
+					String getTurn = rs.getString("getImageType");
+					imageType = getTurn;
+					
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+		
+		return imageType;
+		
+	}
 }
