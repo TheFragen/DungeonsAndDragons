@@ -91,7 +91,7 @@ public class DungeonMasterUI extends JPanel {
 	}
 		
 		public void initialize() throws Exception {
-			
+		
 		
 		ImagePanel panel = new ImagePanel(
 				new ImageIcon("res/background.jpg").getImage());
@@ -346,11 +346,11 @@ public class DungeonMasterUI extends JPanel {
 		scrollPane.setEnabled(false);
 		scrollPane.setVisible(false);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setBounds(88, 257, 159, 128);
+		scrollPane.setBounds(88, 272, 155, 121);
 		add(scrollPane);
 
 		JPanel dicePanel = new JPanel();
-		dicePanel.setBounds(10, 162, 236, 209);
+		dicePanel.setBounds(10, 162, 236, 214);
 		add(dicePanel);
 		dicePanel.setLayout(null);
 
@@ -371,7 +371,7 @@ public class DungeonMasterUI extends JPanel {
 		dicePanel.add(lblDices);
 		
 		JPanel ftpPanel = new JPanel();
-		ftpPanel.setBounds(0, 382, 257, 33);
+		ftpPanel.setBounds(0, 387, 246, 41);
 		add(ftpPanel);
 		
 		JButton btnStorefile = new JButton("Send file to players");
@@ -576,8 +576,7 @@ public class DungeonMasterUI extends JPanel {
 	
 	
 	public void getElements() throws Exception {
-		
-		
+			
 		int rows = db.getRows("images");
 		
 		for(int i = 0; i < rows; i++){
@@ -641,8 +640,6 @@ public class DungeonMasterUI extends JPanel {
 				} catch (Exception ignore) {
 				}
 			}
-		}
-		
-		
+		}	
 	}
 }

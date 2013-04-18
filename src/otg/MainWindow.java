@@ -24,16 +24,21 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class MainWindow {
-
+	
+	
+	
 	String sDriver = "jdbc:sqlite:diceRolls.db";
-	Database db = new Database(sDriver);
+	
 	FTP ftp = new FTP();
 	
 
-	private JFrame frame;
+	public JFrame frame;
 	private JLabel ftpImage;
 	private JPanel imagePanel;
 	private JLabel ftpImageType;
+	private JButton btnClear;
+	private JButton btnRollDice;
+	private JLabel lblHealthpoints;
 
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
@@ -42,6 +47,8 @@ public class MainWindow {
 	private JLabel lblActiveplayer;
 	private JLabel lblFtpNotification;
 	boolean imageActive = false;
+	Database db = new Database(sDriver);
+	boolean cunt = true;;
 	static int rows = 0;
 
 	static int valueInRow = 0;
@@ -76,18 +83,19 @@ public class MainWindow {
 	 * @wbp.parser.entryPoint
 	 */
 	public MainWindow() throws Exception {
-		databaseConnection();
+//		databaseConnection();
 //		initialize();
-		DungeonMaster();
+//		DungeonMaster();
+		
+		Lobby();
 
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-						System.out.println("Boolean is " +imageActive);
 //						setActiveUser();
-						db.getActiveUser();
+//						db.getActiveUser();
 //						setNewNotification();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
@@ -110,7 +118,22 @@ public class MainWindow {
 		frame.setBounds(100, 100, 256, 457);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		DungeonMasterUI dungeonMaster = new DungeonMasterUI();
-		frame.getContentPane().add(dungeonMaster);
+		frame.setContentPane(dungeonMaster);
+	}
+	
+	public void Lobby() throws Exception {
+		frame = new JFrame("D&D Dice Roller");
+		frame.setResizable(false);
+		frame.setBounds(100, 100, 256, 457);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		Lobby lobby = new Lobby();
+		frame.setContentPane(lobby);	
+		
+	}
+	
+
+	public void setCunt(boolean cunt) {
+		this.cunt = cunt;
 	}
 
 	/**
@@ -136,13 +159,27 @@ public class MainWindow {
 					imagePanel.setBounds(0, 0, 250, 429);
 					txtUsername.setEnabled(false);
 					txtUsername.setVisible(false);
+					txtRollingPane.setVisible(false);
 					ftpImage.setEnabled(true);
-					ftpImage.setVisible(true);
+					ftpImage.setVisible(true);	
+					btnClear.setEnabled(false);
+					btnClear.setVisible(false);
+					btnRollDice.setEnabled(false);
+					btnRollDice.setVisible(false);
 					imageActive = true;
+					
 				} else {
 					imagePanel.setBounds(0, 0, -1, -1);
+					txtRollingPane.setVisible(true);
 					txtUsername.setEnabled(true);
 					txtUsername.setVisible(true);
+					ftpImage.setEnabled(true);
+					ftpImage.setVisible(true);	
+					btnClear.setEnabled(true);
+					btnClear.setVisible(true);
+					btnRollDice.setEnabled(true);
+					btnRollDice.setVisible(true);
+					lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
 					ftpImage.setEnabled(false);
 					ftpImage.setVisible(false);
 					imageActive = false;
@@ -178,6 +215,10 @@ public class MainWindow {
 		imagePanel.add(ftpImage);
 		ftpImage.setBackground(Color.BLACK);
 		ftpImage.setEnabled(false);
+		
+		lblHealthpoints = new JLabel("Healthpoints");
+		lblHealthpoints.setBounds(5, 5, 92, 29);
+		imagePanel.add(lblHealthpoints);
 		ftpImage.setVisible(false);
 
 
@@ -389,7 +430,7 @@ public class MainWindow {
 		rollpanel.add(lblResult);
 
 		// Knap der rydder alle tidligere brugerændringer på nær brugernavn
-		JButton btnClear = new JButton("Clear");
+		btnClear = new JButton("Clear");
 		btnClear.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				diceRolling = 0;
@@ -404,7 +445,7 @@ public class MainWindow {
 		frame.getContentPane().add(btnClear);
 
 		// Knap der ruller terningerne og sender det til en database
-		JButton btnRollDice = new JButton("Roll Dice");
+		btnRollDice = new JButton("Roll Dice");
 		btnRollDice.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (user == "Null") {
@@ -612,11 +653,12 @@ public class MainWindow {
 					String getImage = rs.getString("getImage");
 					System.out.println("notifications/" +getImage);
 					File file = new File("notifications/" + getImage);
-					System.out.println(file.isFile());
 					if (file.isFile() == true) {
 						System.out.println("File already exists");
+						ftpImageType.setText(getImageType());
+						lblHealthpoints.setText("Health: " +getHealthPoints(i));
 					}
-					if (file.isFile() == false) {
+					if (file.isFile() == false || firstRun == true) {
 						System.out.println("New file downloaded");
 						ftp.getFile(getImage);
 						String imageToShow = "Null";
@@ -633,14 +675,18 @@ public class MainWindow {
 							bufferedScaledImage.getGraphics().drawImage(scaledImage, 0, 0, null);
 							File outputfile = new File("notifications/scaled-" + getImage);
 							ImageIO.write(bufferedScaledImage, "jpeg", outputfile);
-							imageToShow = "notifications/scaled-" + getImage;
 							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
+							imageToShow = "notifications/scaled-" + getImage;
+							
 						} else {
 							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
 							imageToShow = "notifications/" + getImage;
 						}
+						
 						ftpImage.setIcon(new ImageIcon(imageToShow));
 						ftpImageType.setText(getImageType());
+						lblHealthpoints.setText("Health: " +getHealthPoints(i));
+						firstRun = false;
 
 					}
 				}
@@ -690,5 +736,34 @@ public class MainWindow {
 		
 		return imageType;
 		
+	}
+	
+	public String getHealthPoints(int i) throws Exception {
+		String HP = "Null";
+		
+		String sGetHealthPoints = "SELECT hitPoints AS getHP from images where imageID = " + i;
+		
+		try {
+			db.execute(sGetHealthPoints);
+			ResultSet rs = db.executeQuery(sGetHealthPoints);
+
+			try {
+				while (rs.next()) {
+					int getHP = rs.getInt("getHP");
+					HP = Integer.toString(getHP);
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+		return HP;
 	}
 }

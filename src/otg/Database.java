@@ -142,7 +142,7 @@ public class Database {
 	}
 	
 	public String getActiveUser() throws Exception {
-		String currentActive = "Null";
+		String currentActive = "No one";
 		String sActivePlayer = "SELECT userName AS activeUser from users where isTurn = 1";
 
 		try {
@@ -152,7 +152,7 @@ public class Database {
 				while (rs.next()) {
 					String getActiveUser2 = rs.getString("activeUser");
 					currentActive = getActiveUser2;
-					System.out.println(getActiveUser2);
+					System.out.println("Active user is: " +getActiveUser2);
 				}
 
 			} finally {
