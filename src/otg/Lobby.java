@@ -9,6 +9,7 @@ import javax.swing.ScrollPaneConstants;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Random;
 
@@ -17,6 +18,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JScrollPane;
 import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class Lobby extends JPanel{
 	
@@ -40,9 +43,8 @@ public class Lobby extends JPanel{
 		initialize();
 	}
 		
-		public void initialize() throws Exception {
-		
-		
+	
+	public void initialize() throws Exception {
 		databaseConnection();
 		
 		setLayout(null);
@@ -60,7 +62,6 @@ public class Lobby extends JPanel{
 			    return false;  
 			  }  
 				};
-		table.setRowSelectionAllowed(false);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setShowGrid(false);
 		table.setShowVerticalLines(false);
@@ -131,8 +132,10 @@ public class Lobby extends JPanel{
 					String output = sb.toString();			
 					db.execute("INSERT INTO lobby VALUES (" + i +",'" +gameName +"','" +hostName + "'," + 0 + ",'" +output +".db" +"')");
 					db.closeConnection();
-					DungeonMasterUI dm = new DungeonMasterUI();
-					dm.startDatabase("jdbc:sqlite:" + output +".db");
+					String sDriver = "jdbc:sqlite:" +output +".db";
+					Database db = new Database(sDriver);
+					DungeonMasterUI dm = new DungeonMasterUI(db);
+					dm.setsDriver(output + ".db");
 					mw.dungeonmasterCard(dm);
 					dm.setGamename(gameName);
 				} catch (Exception e1) {
@@ -144,6 +147,29 @@ public class Lobby extends JPanel{
 		add(btnHostGame);
 		
 		JButton btnJoinGame = new JButton("Join");
+		btnJoinGame.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			}
+		});
+		btnJoinGame.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				int row = table.getSelectedRow();
+		        Object sGamename = table.getValueAt(row, 0);
+		        System.out.println("Value at row: "+row + " is: " +sGamename);
+		        
+				try {
+					String sDriver = getDatabaseName(row);
+					System.out.println(sDriver);
+					db.closeConnection();
+					Database db2 = new Database("johnson.db");
+//					PlayerUI player = new PlayerUI(db);
+//					mw.playerCard(player);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		btnJoinGame.setBounds(80, 389, 62, 23);
 		add(btnJoinGame);
 		
@@ -170,7 +196,7 @@ public class Lobby extends JPanel{
 
 		try {
 
-			db.execute(sDropTable);
+//			db.execute(sDropTable);
 			db.execute(sMakeTable);
 
 		} finally {
@@ -281,5 +307,36 @@ public class Lobby extends JPanel{
 				}
 			}
 		}	
+	}
+	
+	public String getDatabaseName(int gameID) throws Exception {
+
+		String database = "Null";
+		String sDatabase = "SELECT databaseName AS getDatabase from lobby where gameID = " +gameID;
+		System.out.println(sDatabase);
+
+		try {
+
+			db.execute(sDatabase);
+			ResultSet rs = db.executeQuery(sDatabase);
+
+			try {
+				while (rs.next()) {
+					String getDatabase = rs.getString("getDatabase");
+					database = getDatabase;
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+				((ResultSet) db).close();
+			} catch (Exception ignore) {
+			}
+		}
+		return database;
 	}
 }

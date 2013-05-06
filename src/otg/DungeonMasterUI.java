@@ -39,6 +39,7 @@ public class DungeonMasterUI extends JPanel {
 	boolean imageActive = false;
 	private JScrollPane scrollPane;
 	private JDesktopPane desktopTest; 
+	Database db;
 	
 	
 	JToggleButton btnPlayerone;
@@ -49,17 +50,10 @@ public class DungeonMasterUI extends JPanel {
 	JToggleButton btnPlayersix;
 	DefaultTableModel model = new DefaultTableModel(); 
 	
-
-	static String sDriver = "jdbc:sqlite:diceRolls.db";
-	
-	public void startDatabase(String s) throws Exception{
-		Database db = new Database(s);
-		
-	}
+	String databaseDriver = "Null";
 	
 	public void setsDriver(String sDriver) {
-		this.sDriver = sDriver;
-		
+		this.databaseDriver = sDriver;
 	}
 
 	
@@ -67,7 +61,9 @@ public class DungeonMasterUI extends JPanel {
 	private JTable table;
 	private JButton btnNewButton_1;
 
-	public DungeonMasterUI() throws Exception{
+	public DungeonMasterUI(Database db) throws Exception{
+		this.db = db;
+		databaseConnection();
 		initialize();
 		
 		Thread feedDiceValue = new Thread(new Runnable() {
@@ -76,7 +72,7 @@ public class DungeonMasterUI extends JPanel {
 				for (int i = 0; i == 0; i = 0) {
 					try {
 						feedValue();
-						System.out.println("Using " + sDriver);
+						System.out.println("Using " + databaseDriver);
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -89,10 +85,8 @@ public class DungeonMasterUI extends JPanel {
 				}
 			}
 		});
-		if(!sDriver.equals("jdbc:sqlite:diceRolls.db")){
-			databaseConnection();
+			
 			feedDiceValue.start();
-		}
 			
 	}
 		

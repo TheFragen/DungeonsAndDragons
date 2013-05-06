@@ -22,8 +22,7 @@ public class Database {
 		try {
 			Class.forName(sDriverName);
 		} catch (Exception e) {
-			// Exception til "Connection Failed" 
-			System.out.println("DriverName: " + sDriver + " was not available");
+			// Exception for "Connection Failed" 
 			System.err.println(e);
 			throw e;
 		}
@@ -140,33 +139,4 @@ public class Database {
 
 		return rows;
 	}
-	
-	public String getActiveUser() throws Exception {
-		String currentActive = "No one";
-		String sActivePlayer = "SELECT userName AS activeUser from users where isTurn = 1";
-
-		try {
-			execute(sActivePlayer);
-			ResultSet rs = executeQuery(sActivePlayer);
-			try {
-				while (rs.next()) {
-					String getActiveUser2 = rs.getString("activeUser");
-					currentActive = getActiveUser2;
-					System.out.println("Active user is: " +getActiveUser2);
-				}
-
-			} finally {
-				try {
-					rs.close();
-				} catch (Exception ignore) {
-				}
-			}
-		} finally {
-			try {
-			} catch (Exception ignore) {
-			}
-		}
-		return currentActive;
-	}
-
 }
