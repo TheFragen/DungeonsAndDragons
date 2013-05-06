@@ -2,10 +2,14 @@ package otg;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+
+import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Image;
 
 import javax.swing.SwingConstants;
@@ -24,15 +28,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class MainWindow {
-	
-	
-	
+
 	String sDriver = "jdbc:sqlite:diceRolls.db";
-	
-	FTP ftp = new FTP();
-	
+
+	FTP ftp = new FTP();	
 
 	public JFrame frame;
+	public JFrame frame2;
 	private JLabel ftpImage;
 	private JPanel imagePanel;
 	private JLabel ftpImageType;
@@ -40,6 +42,7 @@ public class MainWindow {
 	private JButton btnRollDice;
 	private JLabel lblHealthpoints;
 
+	private JDesktopPane desktopTest; 
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
 	private JLabel lblResult;
@@ -50,7 +53,9 @@ public class MainWindow {
 	Database db = new Database(sDriver);
 	boolean cunt = true;;
 	static int rows = 0;
+	JPanel cards;
 
+	DungeonMasterUI dm;
 	static int valueInRow = 0;
 
 	int randomInt = 0;
@@ -83,20 +88,18 @@ public class MainWindow {
 	 * @wbp.parser.entryPoint
 	 */
 	public MainWindow() throws Exception {
-//		databaseConnection();
-//		initialize();
-//		DungeonMaster();
-		
-		Lobby();
+		databaseConnection();
+		cards = new JPanel(new CardLayout());
+		CardsTest();
 
 		Thread tableThread = new Thread(new Runnable() {
 			public void run() {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-//						setActiveUser();
-//						db.getActiveUser();
-//						setNewNotification();
+						//setActiveUser();
+						//db.getActiveUser();
+						//setNewNotification();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -112,28 +115,24 @@ public class MainWindow {
 		tableThread.start();
 	}
 
-	public void DungeonMaster() throws Exception {
+	public void CardsTest() throws Exception {
 		frame = new JFrame("D&D Dice Roller");
 		frame.setResizable(false);
 		frame.setBounds(100, 100, 256, 457);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		DungeonMasterUI dungeonMaster = new DungeonMasterUI();
-		frame.setContentPane(dungeonMaster);
+		Lobby lobby = new Lobby(this);
+		cards.add(lobby);
+		frame.add(cards);	
 	}
-	
-	public void Lobby() throws Exception {
-		frame = new JFrame("D&D Dice Roller");
-		frame.setResizable(false);
-		frame.setBounds(100, 100, 256, 457);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		Lobby lobby = new Lobby();
-		frame.setContentPane(lobby);	
-		
-	}
-	
 
-	public void setCunt(boolean cunt) {
-		this.cunt = cunt;
+	public void dungeonmasterCard(DungeonMasterUI dm) throws Exception {
+		this.dm = dm;		
+		cards.add(dm);	
+		((CardLayout)cards.getLayout()).next(cards);		
+	}
+	
+	public void playerCard() {
+		((CardLayout)cards.getLayout()).last(cards);		
 	}
 
 	/**
@@ -151,7 +150,7 @@ public class MainWindow {
 		frame.setBounds(100, 100, 256, 457);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
-		
+
 		lblFtpNotification = new JLabel("ftpImage");
 		lblFtpNotification.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -167,7 +166,7 @@ public class MainWindow {
 					btnRollDice.setEnabled(false);
 					btnRollDice.setVisible(false);
 					imageActive = true;
-					
+
 				} else {
 					imagePanel.setBounds(0, 0, -1, -1);
 					txtRollingPane.setVisible(true);
@@ -189,33 +188,33 @@ public class MainWindow {
 		lblFtpNotification.setBounds(220, 5, 25, 25);
 		lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
 		frame.getContentPane().add(lblFtpNotification);
-					
-		
+
+
 		imagePanel = new JPanel();
 		imagePanel.setBackground(Color.WHITE);
 		imagePanel.setBounds(0, 0, -1, -1);
 		frame.getContentPane().add(imagePanel);
 		imagePanel.setLayout(null);
-		
+
 		ftpImageType = new JLabel("New label");
 		ftpImageType.setForeground(Color.BLACK);
 		ftpImageType.setFont(new Font("Tahoma", Font.PLAIN, 30));
 		ftpImageType.setBounds(5, 375, 246, 43);
 		imagePanel.add(ftpImageType);
-		
+
 		JLabel lblftpImageType = new JLabel("Image type: ");
 		lblftpImageType.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblftpImageType.setForeground(Color.BLACK);
 		lblftpImageType.setBounds(5, 355, 87, 29);
 		imagePanel.add(lblftpImageType);
 		lblftpImageType.setBackground(Color.BLACK);
-		
+
 		ftpImage = new JLabel("ftpImage");
 		ftpImage.setBounds(0, 0, 251, 429);
 		imagePanel.add(ftpImage);
 		ftpImage.setBackground(Color.BLACK);
 		ftpImage.setEnabled(false);
-		
+
 		lblHealthpoints = new JLabel("Healthpoints");
 		lblHealthpoints.setBounds(5, 5, 92, 29);
 		imagePanel.add(lblHealthpoints);
@@ -516,34 +515,39 @@ public class MainWindow {
 		txtUsername.setBounds(117, 21, 86, 20);
 		frame.getContentPane().add(txtUsername);
 		txtUsername.setColumns(10);
-		
+
 		JPanel databaseValue = new JPanel();
 		databaseValue.setBounds(98, 340, 142, 78);
 		frame.getContentPane().add(databaseValue);
 		databaseValue.setLayout(null);
-		
+
 		JLabel lblPlayerCurrentlyRolling = new JLabel("Player currently rolling:");
 		lblPlayerCurrentlyRolling.setBounds(0, 5, 142, 14);
 		databaseValue.add(lblPlayerCurrentlyRolling);
 		lblPlayerCurrentlyRolling.setHorizontalAlignment(SwingConstants.CENTER);
-		
+
 		lblActiveplayer = new JLabel("None");
 		lblActiveplayer.setBounds(0, 20, 142, 14);
 		databaseValue.add(lblActiveplayer);
 		lblActiveplayer.setHorizontalAlignment(SwingConstants.CENTER);
-		
-				// Lav label der henter værdi fra database
-		
-				lblDatabasevalue = new JLabel("Null");
-				lblDatabasevalue.setBounds(46, 39, 53, 39);
-				databaseValue.add(lblDatabasevalue);
-				lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
-				lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
-	
+
+		// Lav label der henter værdi fra database
+
+		lblDatabasevalue = new JLabel("Null");
+		lblDatabasevalue.setBounds(46, 39, 53, 39);
+		databaseValue.add(lblDatabasevalue);
+		lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
+		lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
+
 
 		frame.getContentPane().add(panel);
+
+		JButton button = new JButton("New button");
+		button.setBounds(161, 41, 89, 23);
+		frame.getContentPane().add(button);
+
 	}
-	
+
 
 	public void databaseConnection() throws Exception {
 
@@ -560,9 +564,9 @@ public class MainWindow {
 			db.execute(sDropTable);
 			db.execute(sMakeTable);
 			db.execute(sInsert);
-//			db.execute(sDropUsers);
+			//db.execute(sDropUsers);
 			db.execute(sMakeUsers);
-//			db.execute(sDropImages);
+			//db.execute(sDropImages);
 			db.execute(sMakeImages);
 
 		} finally {
@@ -572,14 +576,14 @@ public class MainWindow {
 		}
 	}
 
-	
+
 	public void updateTable(int id, String userName, int dice, String rolledDices) throws Exception {
 		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + "," + "'" + rolledDices + "'" +")";
 
 		db.execute(sMakeInsert);
 	}
 
-	
+
 	public void setUsername(int id, String userName) throws Exception {
 		int id2 = id + 1;
 		String sMakeInsert = "INSERT INTO users VALUES(" + id2 + "," + "'" + userName + "'" + "," + 0 + ")";
@@ -595,12 +599,12 @@ public class MainWindow {
 		} catch (Exception ignore) {
 		}
 	}
-	
+
 
 	public boolean isPlayerTurn(String user) throws Exception {
 		String sGetTurn = "SELECT isTurn AS getTurn from users where userName = '" + user + "'";
 		boolean turn = false;
-		
+
 		try {
 			db.execute(sGetTurn);
 			ResultSet rs = db.executeQuery(sGetTurn);
@@ -615,7 +619,7 @@ public class MainWindow {
 					if(getTurn == 1){
 						turn = true;
 					}
-					
+
 				}
 			} finally {
 				try {
@@ -631,19 +635,19 @@ public class MainWindow {
 		}
 		return turn;
 	}
-	
+
 	public void setActiveUser() throws Exception {
 		String s = db.getActiveUser();
 		lblActiveplayer.setText(s);
-		
+
 		lblDatabasevalue.setText(Integer.toString(db.updateUserInterface()));
 	}
-	
+
 	public void setNewNotification() throws Exception {
 		int i = db.getRows("images") - 1;
-		
+
 		String sSetNewNotification = "SELECT imageName AS getImage from images where imageID = " + i ;
-		
+
 		try {
 			db.execute(sSetNewNotification);
 			ResultSet rs = db.executeQuery(sSetNewNotification);
@@ -677,12 +681,12 @@ public class MainWindow {
 							ImageIO.write(bufferedScaledImage, "jpeg", outputfile);
 							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
 							imageToShow = "notifications/scaled-" + getImage;
-							
+
 						} else {
 							lblFtpNotification.setIcon(new ImageIcon("res/notificationNew.png"));
 							imageToShow = "notifications/" + getImage;
 						}
-						
+
 						ftpImage.setIcon(new ImageIcon(imageToShow));
 						ftpImageType.setText(getImageType());
 						lblHealthpoints.setText("Health: " +getHealthPoints(i));
@@ -703,14 +707,14 @@ public class MainWindow {
 			}
 		}
 	}
-	
+
 	public String getImageType() throws Exception {
 		String imageType = null;
-		
+
 		int i = db.getRows("images") - 1;
-		
+
 		String sGetImageType = "SELECT imageType AS getImageType from images where imageID = " + i;
-		
+
 		try {
 			db.execute(sGetImageType);
 			ResultSet rs = db.executeQuery(sGetImageType);
@@ -719,7 +723,7 @@ public class MainWindow {
 				while (rs.next()) {
 					String getTurn = rs.getString("getImageType");
 					imageType = getTurn;
-					
+
 				}
 			} finally {
 				try {
@@ -733,16 +737,16 @@ public class MainWindow {
 			} catch (Exception ignore) {
 			}
 		}
-		
+
 		return imageType;
-		
+
 	}
-	
+
 	public String getHealthPoints(int i) throws Exception {
 		String HP = "Null";
-		
+
 		String sGetHealthPoints = "SELECT hitPoints AS getHP from images where imageID = " + i;
-		
+
 		try {
 			db.execute(sGetHealthPoints);
 			ResultSet rs = db.executeQuery(sGetHealthPoints);

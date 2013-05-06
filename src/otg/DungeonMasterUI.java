@@ -1,19 +1,14 @@
 package otg;
 
 import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JToggleButton;
-import javax.swing.ListModel;
-
 import java.awt.Font;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.SwingConstants;
 
 import java.awt.event.ItemEvent;
@@ -21,19 +16,11 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
-
 import javax.swing.JButton;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import javax.swing.AbstractListModel;
-import java.awt.Color;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
@@ -51,6 +38,7 @@ public class DungeonMasterUI extends JPanel {
 	String current = "None";
 	boolean imageActive = false;
 	private JScrollPane scrollPane;
+	private JDesktopPane desktopTest; 
 	
 	
 	JToggleButton btnPlayerone;
@@ -62,20 +50,33 @@ public class DungeonMasterUI extends JPanel {
 	DefaultTableModel model = new DefaultTableModel(); 
 	
 
-	String sDriver = "jdbc:sqlite:diceRolls.db";
-	Database db = new Database(sDriver);
+	static String sDriver = "jdbc:sqlite:diceRolls.db";
+	
+	public void startDatabase(String s) throws Exception{
+		Database db = new Database(s);
+		
+	}
+	
+	public void setsDriver(String sDriver) {
+		this.sDriver = sDriver;
+		
+	}
+
+	
 	FTP ftp = new FTP();
 	private JTable table;
 	private JButton btnNewButton_1;
 
 	public DungeonMasterUI() throws Exception{
 		initialize();
+		
 		Thread feedDiceValue = new Thread(new Runnable() {
 			public void run() {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
 						feedValue();
+						System.out.println("Using " + sDriver);
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -87,11 +88,17 @@ public class DungeonMasterUI extends JPanel {
 					}
 				}
 			}
-		});feedDiceValue.start();		
+		});
+		if(!sDriver.equals("jdbc:sqlite:diceRolls.db")){
+			databaseConnection();
+			feedDiceValue.start();
+		}
+			
 	}
 		
 		public void initialize() throws Exception {
 		
+			
 		
 		ImagePanel panel = new ImagePanel(
 				new ImageIcon("res/background.jpg").getImage());
@@ -409,7 +416,6 @@ public class DungeonMasterUI extends JPanel {
 				FileNameExtensionFilter filter = new FileNameExtensionFilter("JPG, BMP, TIFF and PNG Images", "jpg", "tiff", "png");
 				fc.setFileFilter(filter);
 				int returnVal = fc.showOpenDialog(DungeonMasterUI.this);
-
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fc.getSelectedFile();
 					String filename = file.getName();
@@ -641,5 +647,36 @@ public class DungeonMasterUI extends JPanel {
 				}
 			}
 		}	
+	}
+	
+	public void setGamename (String s) {
+		lblGamename.setText(s);
+	}
+	
+	public void databaseConnection() throws Exception {
+
+		String sDropTable = "DROP TABLE IF EXISTS dices";
+		String sDropUsers = "DROP TABLE IF EXISTS users";
+		String sDropImages = "Drop TABLE IF EXISTS images";
+		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
+		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
+		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text, hitPoints numeric)";
+		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0, 'DiceRolls')";
+
+		try {
+
+			db.execute(sDropTable);
+			db.execute(sMakeTable);
+			db.execute(sInsert);
+			db.execute(sDropUsers);
+			db.execute(sMakeUsers);
+			db.execute(sDropImages);
+			db.execute(sMakeImages);
+
+		} finally {
+			try {
+			} catch (Exception ignore) {
+			}
+		}
 	}
 }

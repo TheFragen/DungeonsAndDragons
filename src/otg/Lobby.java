@@ -1,6 +1,5 @@
 package otg;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -11,23 +10,22 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Random;
 
 import javax.swing.SwingConstants;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JButton;
 
-public class Lobby extends JPanel {
+public class Lobby extends JPanel{
 	
 	DefaultTableModel model = new DefaultTableModel(); 
 	String sDriver = "jdbc:sqlite:lobbies.db";
 	Database db = new Database(sDriver);
 	boolean firstClick = true;
 	String lobbyDatabase = "Null";
+	MainWindow mw;
 	
 
 	private JScrollPane scrollPane;
@@ -37,7 +35,8 @@ public class Lobby extends JPanel {
 	/**
 	 * Create the panel.
 	 */
-	public Lobby() throws Exception{
+	public Lobby(MainWindow mw) throws Exception{
+		this.mw = mw;
 		initialize();
 	}
 		
@@ -131,8 +130,11 @@ public class Lobby extends JPanel {
 					}
 					String output = sb.toString();			
 					db.execute("INSERT INTO lobby VALUES (" + i +",'" +gameName +"','" +hostName + "'," + 0 + ",'" +output +".db" +"')");
-					setLobbyDatabase(output);
-					ChangeContent();
+					db.closeConnection();
+					DungeonMasterUI dm = new DungeonMasterUI();
+					dm.startDatabase("jdbc:sqlite:" + output +".db");
+					mw.dungeonmasterCard(dm);
+					dm.setGamename(gameName);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -158,9 +160,6 @@ public class Lobby extends JPanel {
 		});
 		btnRefresh.setBounds(157, 389, 79, 23);
 		add(btnRefresh);
-		
-		
-
 	}
 	
 	
@@ -283,27 +282,4 @@ public class Lobby extends JPanel {
 			}
 		}	
 	}
-	
-	public String getLobbyDatabase() {
-		return lobbyDatabase;
-	}
-
-
-	public void setLobbyDatabase(String lobbyDatabase) {
-		this.lobbyDatabase = lobbyDatabase;
-	}
-	
-	public void ChangeContent() throws Exception{
-		MainWindow mw = new MainWindow();
-		DungeonMasterUI dungeonMaster = new DungeonMasterUI();
-//        mw.frame.getContentPane().removeAll();
-//        mw.frame.setContentPane(dungeonMaster);
-		mw.DungeonMaster();
-        mw.frame.revalidate();
-        mw.frame.repaint();
-
-	}
-
-
-	
 }
