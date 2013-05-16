@@ -36,7 +36,6 @@ public class MainWindow {
 	public MainWindow() throws Exception {
 		cards = new JPanel(new CardLayout());
 		CardSetup();
-
 	}
 
 	public void CardSetup() throws Exception {

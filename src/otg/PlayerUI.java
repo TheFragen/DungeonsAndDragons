@@ -66,12 +66,6 @@ public class PlayerUI extends JPanel {
 
 	private JTextField txtUsername;
 
-	/**
-	 * Create the application.
-	 * 
-	 * @throws Exception
-	 * @wbp.parser.entryPoint
-	 */
 	public PlayerUI(Database db, MainWindow mw) throws Exception {
 		this.db = db;
 		this.mw = mw;

@@ -22,7 +22,8 @@ import java.awt.event.ActionEvent;
 
 public class Lobby extends JPanel{
 	
-	private static final long serialVersionUID = 1364856722231740218L;
+
+	private static final long serialVersionUID = -700027885936464291L;
 	
 	
 	DefaultTableModel model = new DefaultTableModel(); 
@@ -36,19 +37,19 @@ public class Lobby extends JPanel{
 	private JScrollPane scrollPane;
 	
 	private JTable table;
+	private JLabel lblNoGames;
 
-	/**
-	 * Create the panel.
-	 */
+	
 	public Lobby(MainWindow mw) throws Exception{
 		this.mw = mw;
+		databaseConnection();
 		initialize();
 		getGames();
 	}
 		
 	
 	public void initialize() throws Exception {
-		databaseConnection();
+		
 		
 		setLayout(null);
 		
@@ -103,8 +104,16 @@ public class Lobby extends JPanel{
 		model.addColumn("Host");
 		model.addColumn("Players");
 		table.getColumnModel().getColumn(0).setPreferredWidth(180);
+		
+		//Label som viser ingen spil blev fundet
+		lblNoGames = new JLabel("No Games Found");
+		lblNoGames.setEnabled(false);
+		lblNoGames.setVisible(false);
+		lblNoGames.setBounds(75, 80, 100, 20);
+		add(lblNoGames);
 		add(table);
 		
+		//Scroll funktionalitet til tabellen
 		scrollPane = new JScrollPane(table);
 		scrollPane.setEnabled(true);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -225,39 +234,45 @@ public class Lobby extends JPanel{
 	public void getGames() throws Exception {
 		int rows = getNewestGame() + 1;
 		
-		while (model.getRowCount() < rows){
-			String sGetElements = "SELECT gameName AS getGames from lobby where gameID = " +updateHPRows ;
-			
-			
-			try {
-
-				db.execute(sGetElements);
-				ResultSet rs = db.executeQuery(sGetElements);
+		if (getNewestGame() == 0 && db.getRows("lobby") == 0) {
+			lblNoGames.setEnabled(true);
+			lblNoGames.setVisible(true);
+		} else {
+			lblNoGames.setEnabled(false);
+			lblNoGames.setVisible(false);
+			while (model.getRowCount() < rows) {
+				String sGetElements = "SELECT gameName AS getGames from lobby where gameID = "+ updateHPRows;
 
 				try {
-					while (rs.next()) {
-						String getGames = (rs.getString("getGames"));	
-						if(model.getRowCount() < rows ){
-							model.addRow(new Object[]{getGames});
+
+					db.execute(sGetElements);
+					ResultSet rs = db.executeQuery(sGetElements);
+
+					try {
+						while (rs.next()) {
+							String getGames = (rs.getString("getGames"));
+							if (model.getRowCount() < rows) {
+								model.addRow(new Object[] { getGames });
+							}
+
+							getPlayerCount();
+							getHostName();
+
 						}
-							
-						getPlayerCount();
-						getHostName();
-						
-						
+					} finally {
+						try {
+							rs.close();
+						} catch (Exception ignore) {
+						}
 					}
 				} finally {
 					try {
-						rs.close();
+						((ResultSet) db).close();
 					} catch (Exception ignore) {
 					}
 				}
-			} finally {
-				try {
-					((ResultSet) db).close();
-				} catch (Exception ignore) {
-				}
-			}updateHPRows++;
+				updateHPRows++;
+			}
 		}
 	}
 	
