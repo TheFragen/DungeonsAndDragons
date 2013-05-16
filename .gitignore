@@ -19,6 +19,8 @@ local.properties
 # User created
 notifications/
 /src/otg/FTPPass.java
+*.db
+*.log
 
 # External tool builders
 .externalToolBuilders/

@@ -119,10 +119,10 @@ public class Lobby extends JPanel{
 					}else {
 						i = db.getRows("lobby") + 1;
 					}				
-					String gameName = JOptionPane.showInputDialog(null,"Please input your games name","Game Name",1);
-					String hostName = JOptionPane.showInputDialog(null,"Please input your own name","Host name",1);
+					String gameName = JOptionPane.showInputDialog(null,"Please input your games name","Game Name",1); // Sæt spil navn
+					String hostName = JOptionPane.showInputDialog(null,"Please input your own name","Host name",1); // Sæt hostens navn
 					
-					char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+					char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray(); //Lav en random liste af bogstaver som navn til database
 					StringBuilder sb = new StringBuilder();
 					Random random = new Random();
 					for (int o = 0; o < 10; o++) {
@@ -155,15 +155,17 @@ public class Lobby extends JPanel{
 			public void mouseClicked(MouseEvent e) {
 				int row = table.getSelectedRow();
 		        Object sGamename = table.getValueAt(row, 0);
-		        System.out.println("Value at row: "+row + " is: " +sGamename);
+		        System.out.println("Value at row "+row + " is: " +sGamename);
 		        
 				try {
-					String sDriver = getDatabaseName(row);
+					String sDriver = "jdbc:sqlite:" +getDatabaseName(row); //Anskaf navnet på den database vi vil bruge, altså kolonne 5 i table lobby
+					int newPlayerCount = getPlayerCount() + 1;
+					db.execute("UPDATE lobby SET playerCount = " + newPlayerCount + " WHERE gameID = '" + row + "'");
 					System.out.println(sDriver);
 					db.closeConnection();
-					Database db2 = new Database("johnson.db");
-//					PlayerUI player = new PlayerUI(db);
-//					mw.playerCard(player);
+					Database db = new Database(sDriver);
+					PlayerUI player = new PlayerUI(db);
+					mw.playerCard(player);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -209,7 +211,6 @@ public class Lobby extends JPanel{
 	public void getGames() throws Exception {
 		
 		int rows = db.getRows("lobby");
-		
 		for(int i = 0; i < rows; i++){
 			String sGetElements = "SELECT gameName AS getGames from lobby where gameID = " +i;
 			
@@ -225,9 +226,9 @@ public class Lobby extends JPanel{
 						if(model.getRowCount() < rows ){
 							model.addRow(new Object[]{getGames});
 						}
-						
-						getHostName();
 						getPlayerCount();
+						getHostName();
+						
 						
 					}
 				} finally {
@@ -277,8 +278,9 @@ public class Lobby extends JPanel{
 		}	
 	}
 	
-	public void getPlayerCount() throws Exception {
+	public int getPlayerCount() throws Exception {
 		int rows = model.getRowCount();
+		int returnPlayers = 0;
 		
 		for(int i = 0; i < rows; i++){
 			String sGetPlayers = "SELECT playerCount AS getPlayers from lobby where gameID = " +i;
@@ -292,7 +294,8 @@ public class Lobby extends JPanel{
 					while (rs.next()) {
 						int getPlayers = rs.getInt("getPlayers");
 						String players = Integer.toString(getPlayers);
-						model.setValueAt(players, i, 2);
+						returnPlayers = getPlayers;
+						model.setValueAt(players, i, 2); // set værdi på tabelen til hvad database har meldt tilbage ved getPlayers
 					}
 				} finally {
 					try {
@@ -306,7 +309,8 @@ public class Lobby extends JPanel{
 				} catch (Exception ignore) {
 				}
 			}
-		}	
+		}
+		return returnPlayers;	
 	}
 	
 	public String getDatabaseName(int gameID) throws Exception {
@@ -322,8 +326,7 @@ public class Lobby extends JPanel{
 
 			try {
 				while (rs.next()) {
-					String getDatabase = rs.getString("getDatabase");
-					database = getDatabase;
+					database = rs.getString("getDatabase");
 				}
 			} finally {
 				try {

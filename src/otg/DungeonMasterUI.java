@@ -38,8 +38,9 @@ public class DungeonMasterUI extends JPanel {
 	String current = "None";
 	boolean imageActive = false;
 	private JScrollPane scrollPane;
-	private JDesktopPane desktopTest; 
 	Database db;
+	String user;
+	int setButtons = 0;
 	
 	
 	JToggleButton btnPlayerone;
@@ -59,7 +60,6 @@ public class DungeonMasterUI extends JPanel {
 	
 	FTP ftp = new FTP();
 	private JTable table;
-	private JButton btnNewButton_1;
 
 	public DungeonMasterUI(Database db) throws Exception{
 		this.db = db;
@@ -72,7 +72,7 @@ public class DungeonMasterUI extends JPanel {
 				for (int i = 0; i == 0; i = 0) {
 					try {
 						feedValue();
-						System.out.println("Using " + databaseDriver);
+						getUser(); //Updater knapper næsten real time i tilfælde af spillere joiner et rum
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -170,7 +170,7 @@ public class DungeonMasterUI extends JPanel {
 						if(playersRolling == 1){
 							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
 						} else {
-							setActiveUser(getUser(0), 1);
+							setActiveUser(btnPlayerone.getText(), 1);
 							playersRolling = 1;
 						}					
 					} catch (Exception e) {
@@ -178,7 +178,7 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {
-						setActiveUser(getUser(0), 0);
+						setActiveUser(btnPlayerone.getText(), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -186,11 +186,7 @@ public class DungeonMasterUI extends JPanel {
 
 			}
 		});			
-
-		btnPlayerone.setText(getUser(0));
-		if(getUser(0) == "Null"){
-			btnPlayerone.setVisible(false);
-		}
+		btnPlayerone.setVisible(false);
 		playerPanel.add(btnPlayerone);
 
 		btnPlayertwo = new JToggleButton("playerTwo");
@@ -201,7 +197,7 @@ public class DungeonMasterUI extends JPanel {
 						if(playersRolling == 1){
 							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
 						} else {
-						setActiveUser(getUser(1), 1);
+						setActiveUser(btnPlayertwo.getText(), 1);
 						playersRolling = 1;
 						}
 					} catch (Exception e) {
@@ -209,7 +205,7 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {
-						setActiveUser(getUser(1), 0);			
+						setActiveUser(btnPlayertwo.getText(), 0);			
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -217,10 +213,7 @@ public class DungeonMasterUI extends JPanel {
 
 			}
 		});
-		btnPlayertwo.setText(getUser(1));
-		if(getUser(1) == "Null"){
-			btnPlayertwo.setVisible(false);
-		}
+		btnPlayertwo.setVisible(false);
 		playerPanel.add(btnPlayertwo);
 
 		btnPlayerthree = new JToggleButton("playerThree");
@@ -231,7 +224,7 @@ public class DungeonMasterUI extends JPanel {
 						if (playersRolling == 1) {
 							JOptionPane.showMessageDialog(null, "Only one player at a time can roll");
 						} else {
-							setActiveUser(getUser(2), 1);
+							setActiveUser(btnPlayerthree.getText(), 1);
 							playersRolling = 1;
 						}
 					} catch (Exception e) {
@@ -239,7 +232,7 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {					
-						setActiveUser(getUser(2), 0);
+						setActiveUser(btnPlayerthree.getText(), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -247,10 +240,7 @@ public class DungeonMasterUI extends JPanel {
 
 			}
 		});			
-		btnPlayerthree.setText(getUser(2));
-		if(getUser(2) == "Null"){
-			btnPlayerthree.setVisible(false);
-		}
+		btnPlayerthree.setVisible(false);
 		playerPanel.add(btnPlayerthree);
 
 		btnPlayerfour = new JToggleButton("playerFour");
@@ -261,7 +251,7 @@ public class DungeonMasterUI extends JPanel {
 						if(playersRolling == 1){
 							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
 						} else {
-						setActiveUser(getUser(3), 1);
+						setActiveUser(btnPlayerfour.getText(), 1);
 						playersRolling = 1;
 						}
 					} catch (Exception e) {
@@ -269,18 +259,15 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {					
-						setActiveUser(getUser(3), 0);
+						setActiveUser(btnPlayerfour.getText(), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 
 			}
-		});			
-		btnPlayerfour.setText(getUser(3));
-		if(getUser(3) == "Null"){
-			btnPlayerfour.setVisible(false);
-		}
+		});	
+		btnPlayerfour.setVisible(false);
 		playerPanel.add(btnPlayerfour);
 
 		btnPlayerfive = new JToggleButton("playerFive");
@@ -291,7 +278,7 @@ public class DungeonMasterUI extends JPanel {
 						if(playersRolling == 1){
 							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
 						} else {
-						setActiveUser(getUser(4), 1);
+						setActiveUser(btnPlayerfive.getText(), 1);
 						playersRolling = 1;
 						}
 					} catch (Exception e) {
@@ -299,18 +286,15 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {					
-						setActiveUser(getUser(4), 0);
+						setActiveUser(btnPlayerfive.getText(), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 
 			}
-		});			
-		btnPlayerfive.setText(getUser(4));
-		if(getUser(4) == "Null"){
-			btnPlayerfive.setVisible(false);
-		}
+		});
+		btnPlayerfive.setVisible(false);
 		playerPanel.add(btnPlayerfive);
 
 		btnPlayersix = new JToggleButton("playerSix");
@@ -321,7 +305,7 @@ public class DungeonMasterUI extends JPanel {
 						if(playersRolling == 1){
 							JOptionPane.showMessageDialog(null,"Only one player at a time can roll");
 						} else {
-						setActiveUser(getUser(5), 1);
+						setActiveUser(btnPlayersix.getText(), 1);
 						playersRolling = 1;
 						}
 					} catch (Exception e) {
@@ -329,7 +313,7 @@ public class DungeonMasterUI extends JPanel {
 					}
 				} else {
 					try {					
-						setActiveUser(getUser(5), 0);
+						setActiveUser(btnPlayersix.getText(), 0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -337,10 +321,7 @@ public class DungeonMasterUI extends JPanel {
 
 			}
 		});			
-		btnPlayersix.setText(getUser(5));
-		if(getUser(5) == "Null"){
-			btnPlayersix.setVisible(false);
-		}
+		btnPlayersix.setVisible(false);
 		playerPanel.add(btnPlayersix);
 		
 		scrollPane = new JScrollPane(table);
@@ -470,9 +451,11 @@ public class DungeonMasterUI extends JPanel {
 
 	}
 
-	public String getUser(int i) throws Exception {
-		String user = "Null";
-		String sSelectDistinct = "SELECT DISTINCT userName AS getUsers FROM users where userID = " + i;
+	public void getUser() throws Exception {
+		
+		int rows = db.getRows("users");
+		
+		String sSelectDistinct = "SELECT userName AS getUsers FROM users where userID = " + rows;
 		
 		try {
 
@@ -480,9 +463,40 @@ public class DungeonMasterUI extends JPanel {
 			ResultSet rs = db.executeQuery(sSelectDistinct);
 
 			try {
-				while (rs.next()) {					
-					String sResult = rs.getString("getUsers");
-					user = sResult;
+				while (rs.next()) {	
+					user = rs.getString("getUsers");
+					if(rows == 1){
+						btnPlayerone.setVisible(true);
+						btnPlayerone.setText(user);
+					}
+					
+					if(rows == 2){
+						btnPlayertwo.setVisible(true);
+						btnPlayertwo.setText(user);
+					}
+					
+					if(rows == 3){
+						btnPlayerthree.setVisible(true);
+						btnPlayerthree.setText(user);
+					}
+					
+					if(rows == 4){
+						btnPlayerfour.setVisible(true);
+						btnPlayerfour.setText(user);
+					}
+					
+					if(rows == 5){
+						btnPlayerfive.setVisible(true);
+						btnPlayerfive.setText(user);
+					}
+					
+					if(rows == 6){
+						btnPlayersix.setVisible(true);
+						btnPlayersix.setText(user);
+					}
+					
+					
+					System.out.println("User: " +user);
 				}
 			} finally {
 				try {
@@ -496,7 +510,6 @@ public class DungeonMasterUI extends JPanel {
 			} catch (Exception ignore) {
 			}
 		}
-		return user;
 	}
 	
 	
@@ -560,7 +573,7 @@ public class DungeonMasterUI extends JPanel {
 	
 	public void feedValue() throws Exception {
 
-		int i = db.updateUserInterface();
+		int i = db.updateUserInterface(); // Henter den nyeste værdi der er blevet rullet
 		lblrolledValue.setText(Integer.toString(i));
 		
 		lblDices.setText(getRolledDices());
@@ -568,10 +581,11 @@ public class DungeonMasterUI extends JPanel {
 		System.out.println("Players Rolling " +playersRolling);
 	}
 	
+	
 	public void uploadImage(int id, String imageName, String imageType, int HP) throws Exception {
 		String sMakeInsert = "INSERT INTO images VALUES(" + id + "," + "'" + imageName + "'" + "," + "'" + imageType + "'" + "," + HP +")";
 
-		db.execute(sMakeInsert);
+		db.execute(sMakeInsert); //Upload et billede til FTP server med en række argumenter
 	}
 	
 	
@@ -673,4 +687,5 @@ public class DungeonMasterUI extends JPanel {
 			}
 		}
 	}
+	
 }

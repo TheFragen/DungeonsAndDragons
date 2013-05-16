@@ -2,15 +2,10 @@ package otg;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Image;
 
 import javax.swing.SwingConstants;
@@ -30,6 +25,8 @@ import java.io.File;
 
 public class PlayerUI extends JPanel {
 
+	private static final long serialVersionUID = 7355976855868497491L;
+
 	FTP ftp = new FTP();	
 
 	private JLabel ftpImage;
@@ -40,7 +37,6 @@ public class PlayerUI extends JPanel {
 	private JLabel lblHealthpoints;
 	private Thread tableThread;
 
-	private JDesktopPane desktopTest; 
 	private JTextPane txtRollingPane;
 	boolean RollingEmpty = false;
 	private JLabel lblResult;
@@ -51,8 +47,7 @@ public class PlayerUI extends JPanel {
 	boolean cunt = true;;
 	static int rows = 0;
 	JPanel cards;
-
-	DungeonMasterUI dm;
+	
 	Database db;
 	static int valueInRow = 0;
 
@@ -497,38 +492,6 @@ public class PlayerUI extends JPanel {
 		lblDatabasevalue.setHorizontalAlignment(SwingConstants.CENTER);
 		lblDatabasevalue.setFont(new Font("Tahoma", Font.PLAIN, 32));
 
-		JButton button = new JButton("New button");
-		button.setBounds(161, 41, 89, 23);
-		add(button);
-
-	}
-
-
-	public void databaseConnection() throws Exception {
-
-		String sDropTable = "DROP TABLE IF EXISTS dices";
-		String sDropUsers = "DROP TABLE IF EXISTS users";
-		String sDropImages = "Drop TABLE IF EXISTS images";
-		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
-		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
-		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text, hitPoints numeric)";
-		String sInsert = "INSERT INTO dices VALUES (0, 'User', 0, 'DiceRolls')";
-
-		try {
-
-			db.execute(sDropTable);
-			db.execute(sMakeTable);
-			db.execute(sInsert);
-			//db.execute(sDropUsers);
-			db.execute(sMakeUsers);
-			//db.execute(sDropImages);
-			db.execute(sMakeImages);
-
-		} finally {
-			try {
-			} catch (Exception ignore) {
-			}
-		}
 	}
 
 
