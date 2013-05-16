@@ -34,6 +34,7 @@ public class PlayerUI extends JPanel {
 	private JLabel ftpImageType;
 	private JButton btnClear;
 	private JButton btnRollDice;
+	private JButton btnReturn;
 	private JLabel lblHealthpoints;
 	private Thread tableThread;
 
@@ -49,6 +50,7 @@ public class PlayerUI extends JPanel {
 	JPanel cards;
 	
 	Database db;
+	MainWindow mw;
 	static int valueInRow = 0;
 
 	int randomInt = 0;
@@ -56,6 +58,11 @@ public class PlayerUI extends JPanel {
 	String user = "Null";
 	int diceRolling = 0;
 	static boolean firstRun = true;
+	boolean threadRunning = true;
+
+	public void setThreadRunning(boolean threadRunning) {
+		this.threadRunning = threadRunning;
+	}
 
 	private JTextField txtUsername;
 
@@ -65,31 +72,37 @@ public class PlayerUI extends JPanel {
 	 * @throws Exception
 	 * @wbp.parser.entryPoint
 	 */
-	public PlayerUI(Database db) throws Exception {
+	public PlayerUI(Database db, MainWindow mw) throws Exception {
 		this.db = db;
+		this.mw = mw;
+		
 		initialize();
+		
+		
+			tableThread = new Thread(new Runnable() {
+				public void run() {
 
-		tableThread = new Thread(new Runnable() {
-			public void run() {
-
-				for (int i = 0; i == 0; i = 0) {
-					try {
-						setActiveUser();
-						System.out.println("Current active user is: " +getActiveUser());
-						setNewNotification();
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+					for (int i = 0; i == 0; i = 0) {
+						try {
+						if (threadRunning == true) {
+							setActiveUser();
+							System.out.println("Current active user is: "+ getActiveUser());
+							setNewNotification();
+						}
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
 				}
-			}
-		});tableThread.start();
-	}
+			});
+			tableThread.start();
+		}
 
 	/**
 	 * Initialize the contents of the frame.
@@ -99,11 +112,11 @@ public class PlayerUI extends JPanel {
 	 */
 	public void initialize() {
 
-		// Initialiser vinduet og tilføj baggrundsbillede
-		ImagePanel panel = new ImagePanel(
-				new ImageIcon("res/background.jpg").getImage());
+		// Initialiser vinduet
 		setLayout(null);
 
+		
+		//Notification knap til at vise billede downloadet fra FTP server
 		lblFtpNotification = new JLabel("ftpImage");
 		lblFtpNotification.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -118,6 +131,8 @@ public class PlayerUI extends JPanel {
 					btnClear.setVisible(false);
 					btnRollDice.setEnabled(false);
 					btnRollDice.setVisible(false);
+					btnReturn.setVisible(false);
+					btnReturn.setEnabled(false);
 					imageActive = true;
 
 				} else {
@@ -129,6 +144,8 @@ public class PlayerUI extends JPanel {
 					ftpImage.setVisible(true);	
 					btnClear.setEnabled(true);
 					btnClear.setVisible(true);
+					btnReturn.setVisible(true);
+					btnReturn.setEnabled(true);
 					btnRollDice.setEnabled(true);
 					btnRollDice.setVisible(true);
 					lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
@@ -142,13 +159,15 @@ public class PlayerUI extends JPanel {
 		lblFtpNotification.setIcon(new ImageIcon("res/notificationNone.png"));
 		add(lblFtpNotification);
 
-
+	
 		imagePanel = new JPanel();
 		imagePanel.setBackground(Color.WHITE);
 		imagePanel.setBounds(0, 0, -1, -1);
 		add(imagePanel);
 		imagePanel.setLayout(null);
 
+		
+		//Label der viser billede typen (monster, vej etc.)
 		ftpImageType = new JLabel("New label");
 		ftpImageType.setForeground(Color.BLACK);
 		ftpImageType.setFont(new Font("Tahoma", Font.PLAIN, 30));
@@ -162,12 +181,14 @@ public class PlayerUI extends JPanel {
 		imagePanel.add(lblftpImageType);
 		lblftpImageType.setBackground(Color.BLACK);
 
+		//Den reele billede viser
 		ftpImage = new JLabel("ftpImage");
 		ftpImage.setBounds(0, 0, 251, 429);
 		imagePanel.add(ftpImage);
 		ftpImage.setBackground(Color.BLACK);
 		ftpImage.setEnabled(false);
 
+		//Label som viser Healthpoints (opdateres real-time)
 		lblHealthpoints = new JLabel("Healthpoints");
 		lblHealthpoints.setBounds(5, 5, 92, 29);
 		imagePanel.add(lblHealthpoints);
@@ -178,6 +199,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.setBounds(0, 0, 88, 419);
 		add(KnapPanel);
 
+		//Tekst som viser hvilke terninger spilleren ruller
 		txtRollingPane = new JTextPane();
 		txtRollingPane.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		txtRollingPane.setBackground(new Color(240, 240, 240));
@@ -190,7 +212,8 @@ public class PlayerUI extends JPanel {
 
 		lblResult = new JLabel(Integer.toString(randomInt));
 
-		// Tilføj billeder
+		
+		// Kode for D4 terningen
 		JLabel label1 = new JLabel();
 		label1.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -215,6 +238,7 @@ public class PlayerUI extends JPanel {
 		label1.setIcon(new ImageIcon("res/blacksquared4.jpg"));
 		KnapPanel.add(label1);
 
+		
 		// Kode for D6 terningen
 		JLabel label2 = new JLabel();
 		label2.addMouseListener(new MouseAdapter() {
@@ -239,6 +263,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label2);
 		label2.setIcon(new ImageIcon("res/blacksquared6.jpg"));
 
+		
 		// Kode for D8 terningen
 		JLabel label3 = new JLabel();
 		label3.addMouseListener(new MouseAdapter() {
@@ -263,6 +288,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label3);
 		label3.setIcon(new ImageIcon("res/blacksquared8.jpg"));
 
+		
 		// Kode for D10 terningen
 		JLabel label4 = new JLabel();
 		label4.addMouseListener(new MouseAdapter() {
@@ -287,6 +313,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label4);
 		label4.setIcon(new ImageIcon("res/blacksquared10.jpg"));
 
+		
 		// Kode for D12 terningen
 		JLabel label5 = new JLabel();
 		label5.addMouseListener(new MouseAdapter() {
@@ -311,6 +338,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label5);
 		label5.setIcon(new ImageIcon("res/blacksquared12.jpg"));
 
+		
 		// Kode for D20 terningen
 		JLabel label6 = new JLabel();
 		label6.addMouseListener(new MouseAdapter() {
@@ -337,6 +365,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label6);
 		label6.setIcon(new ImageIcon("res/blacksquared20.jpg"));
 
+		
 		// Kode for D100 terningen
 		JLabel label7 = new JLabel();
 		label7.addMouseListener(new MouseAdapter() {
@@ -361,6 +390,7 @@ public class PlayerUI extends JPanel {
 		KnapPanel.add(label7);
 		label7.setIcon(new ImageIcon("res/blacksquared100.jpg"));
 
+		
 		// Overskrift til rollPanel
 		JLabel lblRoll = new JLabel("Roll!");
 		lblRoll.setFont(new Font("Verdana", Font.BOLD, 23));
@@ -381,6 +411,7 @@ public class PlayerUI extends JPanel {
 
 		rollpanel.add(lblResult);
 
+		
 		// Knap der rydder alle tidligere brugerændringer på nær brugernavn
 		btnClear = new JButton("Clear");
 		btnClear.addMouseListener(new MouseAdapter() {
@@ -395,7 +426,27 @@ public class PlayerUI extends JPanel {
 		});
 		btnClear.setBounds(118, 306, 89, 23);
 		add(btnClear);
+		
+		
+		// Går tilbage til lobbien og lukker alle connections til db og ftp
+		btnReturn = new JButton("Lobby");
+		btnReturn.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {		
+				try {
+					db.closeConnection();
+					ftp.closeConnection();
+					mw.backToLobby();
+					threadRunning = false;
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnReturn.setBounds(110, 3, 97, 15);
+		add(btnReturn);
 
+		
 		// Knap der ruller terningerne og sender det til en database
 		btnRollDice = new JButton("Roll Dice");
 		btnRollDice.addMouseListener(new MouseAdapter() {
@@ -419,8 +470,7 @@ public class PlayerUI extends JPanel {
 								int diceVal = rolledValue;
 
 								try {
-									updateTable(id, user, diceVal,
-											txtRollingPane.getText());
+									updateTable(id, user, diceVal,txtRollingPane.getText()); //Opdater de andre spillere og DM med værdi der blev rullet
 									System.out.println("Database updated with new value");
 								} catch (Exception e1) {
 									e1.printStackTrace();
@@ -446,6 +496,7 @@ public class PlayerUI extends JPanel {
 		btnRollDice.setBounds(118, 280, 89, 23);
 		add(btnRollDice);
 
+		
 		// Sæt et brugernavn
 		txtUsername = new JTextField();
 		txtUsername.addKeyListener(new KeyAdapter() {
@@ -484,6 +535,7 @@ public class PlayerUI extends JPanel {
 		databaseValue.add(lblActiveplayer);
 		lblActiveplayer.setHorizontalAlignment(SwingConstants.CENTER);
 
+		
 		// Lav label der henter værdi fra database
 
 		lblDatabasevalue = new JLabel("Null");
@@ -498,7 +550,7 @@ public class PlayerUI extends JPanel {
 	public void updateTable(int id, String userName, int dice, String rolledDices) throws Exception {
 		String sMakeInsert = "INSERT INTO dices VALUES(" + id + "," + "'" + userName + "'" + "," + dice + "," + "'" + rolledDices + "'" +")";
 
-		db.execute(sMakeInsert);
+		db.execute(sMakeInsert); //Her opdateres databasen med den værdi som spilleren rullede
 	}
 
 
@@ -508,9 +560,10 @@ public class PlayerUI extends JPanel {
 
 		ResultSet rs = db.executeQuery("SELECT userName FROM users WHERE userName LIKE '" + userName + "'");
 		if (rs.next()) {
-			JOptionPane.showMessageDialog(null, "Please select another name.");
+			JOptionPane.showMessageDialog(null, "Please select another name."); //Navnet er allerede brugt, brugeren skal vælge et andet
 		} else {
 			db.execute(sMakeInsert);
+			txtUsername.setEditable(false);
 		}
 		try {
 			rs.close();
@@ -518,7 +571,7 @@ public class PlayerUI extends JPanel {
 		}
 	}
 
-
+	//Tjekker om DM har givet spilleren lov til at rulle
 	public boolean isPlayerTurn(String user) throws Exception {
 		String sGetTurn = "SELECT isTurn AS getTurn from users where userName = '" + user + "'";
 		boolean turn = false;
@@ -553,16 +606,20 @@ public class PlayerUI extends JPanel {
 		}
 		return turn;
 	}
+	
 
+	//Setter navnet på den bruger der har lov til at rulle, i et label
 	public void setActiveUser() throws Exception {
 		String s = getActiveUser();
 		lblActiveplayer.setText(s);
 
 		lblDatabasevalue.setText(Integer.toString(db.updateUserInterface()));
 	}
+	
 
+	//Opdaterer notifikations ikonet hvis DM har uploaded et nyt billede
 	public void setNewNotification() throws Exception {
-		int i = db.getRows("images") - 1;
+		int i = getNewestImage();
 
 		String sSetNewNotification = "SELECT imageName AS getImage from images where imageID = " + i ;
 
@@ -582,7 +639,7 @@ public class PlayerUI extends JPanel {
 					}
 					if (file.isFile() == false || firstRun == true) {
 						System.out.println("New file downloaded");
-						ftp.getFile(getImage);
+						ftp.getFile(getImage); //Henter den nye fil ned
 						String imageToShow = "Null";
 
 						// Skalerer billedet fra FTP serveren
@@ -605,7 +662,7 @@ public class PlayerUI extends JPanel {
 							imageToShow = "notifications/" + getImage;
 						}
 
-						ftpImage.setIcon(new ImageIcon(imageToShow));
+						ftpImage.setIcon(new ImageIcon(imageToShow)); //Viser det nye billede hentede
 						ftpImageType.setText(getImageType());
 						lblHealthpoints.setText("Health: " +getHealthPoints(i));
 						firstRun = false;
@@ -625,11 +682,44 @@ public class PlayerUI extends JPanel {
 			}
 		}
 	}
+	
+	//Henter det nyeste billede
+	public int getNewestImage() throws Exception {
+		int imageID = 0;
+		
+		String sMakeUpdate = "SELECT imageID AS newestValue FROM images WHERE imageID = (SELECT MAX(imageID)  FROM images)";
 
+		try {
+			db.execute(sMakeUpdate);
+
+			ResultSet rs = db.executeQuery(sMakeUpdate);
+
+			try {
+				while (rs.next()) {
+					imageID = rs.getInt("newestValue");
+
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+			
+			} catch (Exception ignore) {
+			}
+		}
+		
+		return imageID;
+	}
+
+	//Henter hvilken type det nyeste billede har
 	public String getImageType() throws Exception {
 		String imageType = null;
 
-		int i = db.getRows("images") - 1;
+		int i = db.getRows("images");
 
 		String sGetImageType = "SELECT imageType AS getImageType from images where imageID = " + i;
 
@@ -660,6 +750,7 @@ public class PlayerUI extends JPanel {
 
 	}
 
+	//Henter i real-time (næsten) hvor mange healthpoints billedet har
 	public String getHealthPoints(int i) throws Exception {
 		String HP = "Null";
 
@@ -689,6 +780,7 @@ public class PlayerUI extends JPanel {
 		return HP;
 	}
 	
+	//Henter hvem der er den aktive bruger
 	public String getActiveUser() throws Exception {
 		String currentActive = "No one";
 		String sActivePlayer = "SELECT userName AS activeUser from users where isTurn = 1";

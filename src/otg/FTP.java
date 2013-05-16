@@ -20,19 +20,20 @@ public class FTP {
 		
 		try {
 			client.connect("otgiusa.dk");
-			boolean login = client.login("bjarnen@otgiusa.dk", ftppass.getPass());
-			client.changeWorkingDirectory("/javafolder");
-			client.setFileType(2);
+			boolean login = client.login("bjarnen@otgiusa.dk", ftppass.getPass()); //logger ind på FTP server og henter koden fra seperat klasse (psw skal ikke ses på Github)
+			client.changeWorkingDirectory("/javafolder"); //skifter mappen der overføres i til javafolder
+			client.setFileType(2); 
 			client.setBufferSize(0);
 
 			if (login) {
-				System.out.println("Connected to FTP");
+				System.out.println("Connected to FTP"); //hvis det var muligt at logge in, skal der komme en konsol kommando
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	//Kode til upload af billede
 	public void storeFile(String filepath, String filename) throws Exception {
 		
 		FileInputStream fis = null;
@@ -59,6 +60,7 @@ public class FTP {
 	}
 	
 	
+	//Kode til download af billeder
 	public void getFile(String file) throws IOException {
 
 		FileOutputStream fos = null;
@@ -82,6 +84,7 @@ public class FTP {
 		}
 	}
 	
+	//Lukker forbindelsen
 	public void closeConnection () throws IOException  {
 		client.logout();
 		client.disconnect();

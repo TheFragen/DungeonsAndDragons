@@ -7,7 +7,6 @@ public class Database {
 	static int rows = 0;
 	public String sUrl;
 	private String sDriverName = "org.sqlite.JDBC";
-	private String sDriver;
 	private Connection conn = null;
 	private Statement stmt = null;
 	
@@ -109,6 +108,7 @@ public class Database {
 	}
 
 	
+	//Returnerer antallet af rækker i en given tabel
 	public int getRows(String s) throws Exception {
 		String sMakeUpdate = "SELECT COUNT(*) AS rowNumber FROM " + s;
 

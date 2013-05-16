@@ -1,32 +1,8 @@
 package otg;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
 import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Image;
-
-import javax.swing.SwingConstants;
 import javax.swing.JPanel;
-import java.awt.Font;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.JTextPane;
-import javax.swing.JButton;
-import java.sql.*;
-
-import javax.swing.JTextField;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
 
 public class MainWindow {
 
@@ -59,11 +35,11 @@ public class MainWindow {
 	 */
 	public MainWindow() throws Exception {
 		cards = new JPanel(new CardLayout());
-		CardsTest();
+		CardSetup();
 
 	}
 
-	public void CardsTest() throws Exception {
+	public void CardSetup() throws Exception {
 		frame = new JFrame("D&D Dice Roller");
 		frame.setResizable(false);
 		frame.setBounds(100, 100, 256, 457);
@@ -83,5 +59,9 @@ public class MainWindow {
 		this.player = player;
 		cards.add(player);	
 		((CardLayout)cards.getLayout()).last(cards);		
+	}
+	
+	public void backToLobby() throws Exception {
+		((CardLayout)cards.getLayout()).first(cards);		
 	}
 }

@@ -1,7 +1,5 @@
 package otg;
 
-import javax.swing.ImageIcon;
-import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -27,6 +25,9 @@ import javax.swing.ScrollPaneConstants;
 public class DungeonMasterUI extends JPanel {
 
 	private static final long serialVersionUID = 2607816291271048284L;
+	
+	FTP ftp = new FTP();
+	
 	int playersRolling = 0;
 	int rows = 0;
 	private JLabel lblrolledValue;
@@ -39,8 +40,14 @@ public class DungeonMasterUI extends JPanel {
 	boolean imageActive = false;
 	private JScrollPane scrollPane;
 	Database db;
+	boolean firstClick = true;
+	int lastValue = 0;
+	int updateHPRows = 0;
+
 	String user;
+	boolean threadRunning = true;
 	int setButtons = 0;
+	
 	
 	
 	JToggleButton btnPlayerone;
@@ -56,13 +63,18 @@ public class DungeonMasterUI extends JPanel {
 	public void setsDriver(String sDriver) {
 		this.databaseDriver = sDriver;
 	}
+	
+	public void setThreadRunning(boolean threadRunning) {
+		this.threadRunning = threadRunning;
+	}
 
 	
-	FTP ftp = new FTP();
+	
 	private JTable table;
 
 	public DungeonMasterUI(Database db) throws Exception{
 		this.db = db;
+		
 		databaseConnection();
 		initialize();
 		
@@ -71,8 +83,8 @@ public class DungeonMasterUI extends JPanel {
 
 				for (int i = 0; i == 0; i = 0) {
 					try {
-						feedValue();
-						getUser(); //Updater knapper næsten real time i tilfælde af spillere joiner et rum
+							feedValue();
+							getUser(); // Updater knapper næsten real time i tilfælde af spillere joiner et rum
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -92,76 +104,78 @@ public class DungeonMasterUI extends JPanel {
 		
 		public void initialize() throws Exception {
 		
+		//Her initialiseres programmet
 			
+		lblGamename = new JLabel("Attack of the Swedes");
+		lblGamename.setBounds(10, 11, 236, 20);
+		lblGamename.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String s = JOptionPane.showInputDialog(null, "Please enter you game name : ", "Game name", 1);
+				lblGamename.setText(s);
+			}
+		});
+		setLayout(null);
+
+		table = new JTable(model) {
+			private static final long serialVersionUID = 4352633901210885218L;
+
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 		
-		ImagePanel panel = new ImagePanel(
-				new ImageIcon("res/background.jpg").getImage());
-		
-				lblGamename = new JLabel("Attack of the Swedes");
-				lblGamename.setBounds(10, 11, 236, 20);
-				lblGamename.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						String s = JOptionPane.showInputDialog(null, "Please enter you game name : ", "Game name", 1);
-						lblGamename.setText(s);
+		//Opdater tabel med ny healthpoint
+		table.setRowSelectionAllowed(false);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setShowGrid(false);
+		table.setShowVerticalLines(false);
+		table.setShowHorizontalLines(false);
+		table.setEnabled(false);
+		table.setVisible(false);
+		table.setBounds(155, 257, 92, 128);
+		table.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					JTable target = (JTable) e.getSource();
+					int selectedRow = target.getSelectedRow();
+					boolean acceptedInteger = false;
+					int healthPoints = 0;
+					while (!acceptedInteger) {
+						try {
+							String hpString = JOptionPane.showInputDialog(	null,"Please input amount of health points (leave blank if none):", "Health points", 1);
+							healthPoints = Integer.parseInt(hpString);
+							acceptedInteger = true;
+							try {
+								JOptionPane.showMessageDialog(null, "Health points has been updated");
+								int rowToChange = selectedRow;
+								db.execute("UPDATE images SET hitPoints = " + healthPoints + " WHERE imageID = "+ rowToChange);
+								model.setValueAt(hpString, selectedRow, 1);
+								model.fireTableRowsUpdated(1, selectedRow);
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+
+						} catch (NumberFormatException e2) {
+							JOptionPane.showMessageDialog(null, "Please only use numbers");
+						}
 					}
-				});
-				setLayout(null);
-				
-				table = new JTable(model){  
-					  public boolean isCellEditable(int row, int column){  
-						    return false;  
-						  }  
-						};  
-				table.setRowSelectionAllowed(false);
-				table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-				table.setShowGrid(false);
-				table.setShowVerticalLines(false);
-				table.setShowHorizontalLines(false);
-				table.setEnabled(false);
-				table.setVisible(false);
-				table.setBounds(155, 257, 92, 128);
-				table.addMouseListener(new MouseAdapter(){
-				     public void mouseClicked(MouseEvent e){
-				         if (e.getClickCount() == 2){
-				        	JTable target = (JTable)e.getSource();
-				        	int selectedRow = target.getSelectedRow();
-				            boolean acceptedInteger = false;
-				            int healthPoints = 0;
-				            while(!acceptedInteger){
-								try {
-									String hpString = JOptionPane.showInputDialog(null,"Please input amount of health points (leave blank if none):","Health points",1);
-										healthPoints = Integer.parseInt(hpString);
-										acceptedInteger = true;
-										try {
-											JOptionPane.showMessageDialog(null,"Health points has been updated");
-											db.execute("UPDATE images SET hitPoints = "+healthPoints +" WHERE imageID = " +selectedRow);
-											model.setValueAt(hpString, selectedRow, 1);
-											model.fireTableRowsUpdated(1, selectedRow);
-										} catch (Exception e1) {
-											e1.printStackTrace();
-										}
-										
-								} catch (NumberFormatException e2) {
-									JOptionPane.showMessageDialog(null,"Please only use numbers");
-								}
-							}     
-				            }
-				         }
-				        });
-				model.addColumn("Name");
-				model.addColumn("HP");
-				add(table);
-				
-				
-				lblGamename.setHorizontalAlignment(SwingConstants.CENTER);
-				lblGamename.setFont(new Font("Tahoma", Font.PLAIN, 16));
-				add(lblGamename);
+				}
+			}
+		});
+		model.addColumn("Name");
+		model.addColumn("HP");
+		add(table);
+
+		lblGamename.setHorizontalAlignment(SwingConstants.CENTER);
+		lblGamename.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		add(lblGamename);
 
 		JPanel playerPanel = new JPanel();
 		playerPanel.setBounds(10, 56, 236, 95);
 		add(playerPanel);
 
+		//Knap for spiller 1
 		btnPlayerone = new JToggleButton("playerOne");
 		btnPlayerone.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -189,6 +203,7 @@ public class DungeonMasterUI extends JPanel {
 		btnPlayerone.setVisible(false);
 		playerPanel.add(btnPlayerone);
 
+		//Knap for spiller 2
 		btnPlayertwo = new JToggleButton("playerTwo");
 		btnPlayertwo.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -216,6 +231,7 @@ public class DungeonMasterUI extends JPanel {
 		btnPlayertwo.setVisible(false);
 		playerPanel.add(btnPlayertwo);
 
+		//Knap for spiller 3
 		btnPlayerthree = new JToggleButton("playerThree");
 		btnPlayerthree.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -243,6 +259,7 @@ public class DungeonMasterUI extends JPanel {
 		btnPlayerthree.setVisible(false);
 		playerPanel.add(btnPlayerthree);
 
+		//Knap for spiller 4
 		btnPlayerfour = new JToggleButton("playerFour");
 		btnPlayerfour.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -270,6 +287,7 @@ public class DungeonMasterUI extends JPanel {
 		btnPlayerfour.setVisible(false);
 		playerPanel.add(btnPlayerfour);
 
+		//Knap for spiller 5
 		btnPlayerfive = new JToggleButton("playerFive");
 		btnPlayerfive.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -297,6 +315,7 @@ public class DungeonMasterUI extends JPanel {
 		btnPlayerfive.setVisible(false);
 		playerPanel.add(btnPlayerfive);
 
+		//Knap for spiller 6
 		btnPlayersix = new JToggleButton("playerSix");
 		btnPlayersix.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent ev) {
@@ -414,12 +433,19 @@ public class DungeonMasterUI extends JPanel {
 					while(!acceptedInteger){
 						try {
 							String hpString = JOptionPane.showInputDialog(null,"Health points : ","Please input amount of health points (leave blank if none)",1);
+							int id = 0;
 							if (hpString.equals("")) {
 								acceptedInteger = true;
 								try {
 									ftp.storeFile(file.getPath(), filename);
 									JOptionPane.showMessageDialog(null,"Your selected image was uploaded");
-									int id = db.getRows("images") + 1;
+									
+									if(firstClick == true){
+										id = db.getRows("images");
+										firstClick = false;
+									}else {
+										id = getNewestImage() + 1;
+									}	
 									uploadImage(id, file.getName(), imageType, healthPoints);
 								} catch (Exception e1) {
 									e1.printStackTrace();
@@ -430,7 +456,12 @@ public class DungeonMasterUI extends JPanel {
 								try {
 									ftp.storeFile(file.getPath(), filename);
 									JOptionPane.showMessageDialog(null,"Your selected image was uploaded");
-									int id = db.getRows("images") + 1;
+									if(firstClick == true){
+										id = db.getRows("images");
+										firstClick = false;
+									}else {
+										id = getNewestImage() + 1;
+									}	
 									uploadImage(id, file.getName(), imageType, healthPoints);
 								} catch (Exception e1) {
 									e1.printStackTrace();
@@ -439,10 +470,7 @@ public class DungeonMasterUI extends JPanel {
 						} catch (NumberFormatException e2) {
 							JOptionPane.showMessageDialog(null,"Please only use numbers");
 						}
-					}
-					
-					
-					
+					}	
 				} else {
 					System.out.println("Cancelled file choosing operation.");
 				}
@@ -451,6 +479,7 @@ public class DungeonMasterUI extends JPanel {
 
 	}
 
+	//Henter brugernavnene på de spillere der i rummet, med et limit på spillere
 	public void getUser() throws Exception {
 		
 		int rows = db.getRows("users");
@@ -513,6 +542,7 @@ public class DungeonMasterUI extends JPanel {
 	}
 	
 	
+	//Setter den aktive bruger i DM brugerfladen
 	public void setActiveUser(String user, int state) throws Exception {
 
 		if (state == 1) {
@@ -537,6 +567,7 @@ public class DungeonMasterUI extends JPanel {
 
 	}
 	
+	//Henter hvilke terninger der blev kastet fra spilleren DM gav lov til at rulle
 	public String getRolledDices() throws Exception {
 		String RolledDices = "Null";
 		
@@ -588,13 +619,12 @@ public class DungeonMasterUI extends JPanel {
 		db.execute(sMakeInsert); //Upload et billede til FTP server med en række argumenter
 	}
 	
-	
+	//Henter data fra en database table og fylder det ind i et JTable
 	public void getElements() throws Exception {
-			
-		int rows = db.getRows("images");
+		int rows = getNewestImage() + 1;
 		
-		for(int i = 0; i < rows; i++){
-			String sGetElements = "SELECT imageName AS getRows from images where imageID = " +i;
+		while (model.getRowCount() < rows){
+			String sGetElements = "SELECT imageName AS getGames from images where imageID = " +updateHPRows;
 			
 			
 			try {
@@ -604,11 +634,14 @@ public class DungeonMasterUI extends JPanel {
 
 				try {
 					while (rs.next()) {
-						String getRows = (rs.getString("getRows"));	
-						if(model.getRowCount() < rows){
-							model.addRow(new Object[]{getRows});
-							getHealthPoints();
-						}	
+						String getGames = (rs.getString("getGames"));	
+						if(model.getRowCount() < rows ){
+							model.addRow(new Object[]{getGames});
+						}
+							
+						getHealthPoints();
+						
+						
 					}
 				} finally {
 					try {
@@ -621,11 +654,11 @@ public class DungeonMasterUI extends JPanel {
 					((ResultSet) db).close();
 				} catch (Exception ignore) {
 				}
-			}
+			}updateHPRows++;
 		}
-		
 	}
 	
+	//Henter healthpoints fra database og fylder det ind i en tabel
 	public void getHealthPoints() throws Exception {
 		int rows = model.getRowCount();
 		
@@ -633,10 +666,8 @@ public class DungeonMasterUI extends JPanel {
 			String sGetHP = "SELECT hitPoints AS getHP from images where imageID = " +i;
 				
 			try {
-
 				db.execute(sGetHP);
 				ResultSet rs = db.executeQuery(sGetHP);
-
 				try {
 					while (rs.next()) {
 						String getHP = rs.getString("getHP");
@@ -657,15 +688,16 @@ public class DungeonMasterUI extends JPanel {
 		}	
 	}
 	
+	//Setter navnet på spillet lokalt for DM (kaldet i lobby.java)
 	public void setGamename (String s) {
 		lblGamename.setText(s);
 	}
 	
-	public void databaseConnection() throws Exception {
+	//Laver database forbindelserne der skal til for at kunne modtage spillernes værdier osv.
+	public void databaseConnection() throws Exception { 
 
 		String sDropTable = "DROP TABLE IF EXISTS dices";
 		String sDropUsers = "DROP TABLE IF EXISTS users";
-		String sDropImages = "Drop TABLE IF EXISTS images";
 		String sMakeTable = "CREATE TABLE if NOT EXISTS dices (kastID INT IDENTITY PRIMARY KEY, userName text, diceValue numeric, rolledDices text)";
 		String sMakeUsers = "CREATE TABLE if NOT EXISTS users (userID INT PRIMARY KEY, userName text, isTurn boolean)";
 		String sMakeImages = "CREATE TABLE if NOT EXISTS images (imageID INT PRIMARY KEY, imageName text, imageType text, hitPoints numeric)";
@@ -678,7 +710,6 @@ public class DungeonMasterUI extends JPanel {
 			db.execute(sInsert);
 			db.execute(sDropUsers);
 			db.execute(sMakeUsers);
-			db.execute(sDropImages);
 			db.execute(sMakeImages);
 
 		} finally {
@@ -688,4 +719,35 @@ public class DungeonMasterUI extends JPanel {
 		}
 	}
 	
+	//Henter imageID på det nyeste billede i databasen
+	public int getNewestImage() throws Exception {
+		int imageID = 0;
+		
+		String sMakeUpdate = "SELECT imageID AS newestValue FROM images WHERE imageID = (SELECT MAX(imageID)  FROM images)";
+
+		try {
+			db.execute(sMakeUpdate);
+
+			ResultSet rs = db.executeQuery(sMakeUpdate);
+
+			try {
+				while (rs.next()) {
+					imageID = rs.getInt("newestValue");
+
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+			
+			} catch (Exception ignore) {
+			}
+		}
+		
+		return imageID;
+	}
 }

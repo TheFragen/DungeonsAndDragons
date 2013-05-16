@@ -9,7 +9,6 @@ import javax.swing.ScrollPaneConstants;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Random;
 
@@ -23,6 +22,9 @@ import java.awt.event.ActionEvent;
 
 public class Lobby extends JPanel{
 	
+	private static final long serialVersionUID = 1364856722231740218L;
+	
+	
 	DefaultTableModel model = new DefaultTableModel(); 
 	String sDriver = "jdbc:sqlite:lobbies.db";
 	Database db = new Database(sDriver);
@@ -30,7 +32,7 @@ public class Lobby extends JPanel{
 	String lobbyDatabase = "Null";
 	MainWindow mw;
 	
-
+	int updateHPRows = 0;
 	private JScrollPane scrollPane;
 	
 	private JTable table;
@@ -41,6 +43,7 @@ public class Lobby extends JPanel{
 	public Lobby(MainWindow mw) throws Exception{
 		this.mw = mw;
 		initialize();
+		getGames();
 	}
 		
 	
@@ -108,6 +111,8 @@ public class Lobby extends JPanel{
 		scrollPane.setBounds(10, 57, 230, 321);
 		add(scrollPane);
 		
+		
+		// Knap til at oprette spil og skifte til DM ui
 		JButton btnHostGame = new JButton("Host");
 		btnHostGame.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -117,27 +122,33 @@ public class Lobby extends JPanel{
 						i = db.getRows("lobby");
 						firstClick = false;
 					}else {
-						i = db.getRows("lobby") + 1;
-					}				
+						i = getNewestGame() + 1;
+					}
+					
+					
 					String gameName = JOptionPane.showInputDialog(null,"Please input your games name","Game Name",1); // Sæt spil navn
 					String hostName = JOptionPane.showInputDialog(null,"Please input your own name","Host name",1); // Sæt hostens navn
-					
-					char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray(); //Lav en random liste af bogstaver som navn til database
-					StringBuilder sb = new StringBuilder();
-					Random random = new Random();
-					for (int o = 0; o < 10; o++) {
-					    char c = chars[random.nextInt(chars.length)];
-					    sb.append(c);
+					if(gameName == null || hostName == null){
+						JOptionPane.showMessageDialog(null, "Cancelled"); //Bliver der ikke skrevet noget i en af inputdialogerne canceller vi host operationen
+					} else {
+
+						char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray(); // Lav en random liste af bogstaver som navn til database
+						StringBuilder sb = new StringBuilder();
+						Random random = new Random();
+						for (int o = 0; o < 8; o++) {
+							char c = chars[random.nextInt(chars.length)];
+							sb.append(c);
+						}
+						String output = sb.toString();
+						db.execute("INSERT INTO lobby VALUES (" + i + ",'" + gameName + "','" + hostName + "'," + 0 + ",'" + output + ".db" + "')");
+						db.closeConnection();
+						String sDriver = "jdbc:sqlite:" + output + ".db";
+						Database db = new Database(sDriver);
+						DungeonMasterUI dm = new DungeonMasterUI(db);
+						dm.setsDriver(output + ".db");
+						mw.dungeonmasterCard(dm);
+						dm.setGamename(gameName);
 					}
-					String output = sb.toString();			
-					db.execute("INSERT INTO lobby VALUES (" + i +",'" +gameName +"','" +hostName + "'," + 0 + ",'" +output +".db" +"')");
-					db.closeConnection();
-					String sDriver = "jdbc:sqlite:" +output +".db";
-					Database db = new Database(sDriver);
-					DungeonMasterUI dm = new DungeonMasterUI(db);
-					dm.setsDriver(output + ".db");
-					mw.dungeonmasterCard(dm);
-					dm.setGamename(gameName);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -146,6 +157,8 @@ public class Lobby extends JPanel{
 		btnHostGame.setBounds(10, 389, 62, 23);
 		add(btnHostGame);
 		
+		
+		// Knap til at tilslutte spil
 		JButton btnJoinGame = new JButton("Join");
 		btnJoinGame.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -161,10 +174,9 @@ public class Lobby extends JPanel{
 					String sDriver = "jdbc:sqlite:" +getDatabaseName(row); //Anskaf navnet på den database vi vil bruge, altså kolonne 5 i table lobby
 					int newPlayerCount = getPlayerCount() + 1;
 					db.execute("UPDATE lobby SET playerCount = " + newPlayerCount + " WHERE gameID = '" + row + "'");
-					System.out.println(sDriver);
-					db.closeConnection();
-					Database db = new Database(sDriver);
-					PlayerUI player = new PlayerUI(db);
+					Database db2 = new Database(sDriver);
+					PlayerUI player = new PlayerUI(db2, mw);
+					player.setThreadRunning(true);
 					mw.playerCard(player);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -175,6 +187,7 @@ public class Lobby extends JPanel{
 		btnJoinGame.setBounds(80, 389, 62, 23);
 		add(btnJoinGame);
 		
+		//Genopfrisk listen med spil
 		JButton btnRefresh = new JButton("Refresh");
 		btnRefresh.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -193,7 +206,7 @@ public class Lobby extends JPanel{
 	
 	public void databaseConnection() throws Exception {
 
-		String sDropTable = "DROP TABLE IF EXISTS lobby";
+//		String sDropTable = "DROP TABLE IF EXISTS lobby";
 		String sMakeTable = "CREATE TABLE if NOT EXISTS lobby (gameID INT IDENTITY PRIMARY KEY, gameName text, hostName text, playerCount numeric, databaseName text)";
 
 		try {
@@ -208,11 +221,12 @@ public class Lobby extends JPanel{
 		}
 	}
 	
+	
 	public void getGames() throws Exception {
+		int rows = getNewestGame() + 1;
 		
-		int rows = db.getRows("lobby");
-		for(int i = 0; i < rows; i++){
-			String sGetElements = "SELECT gameName AS getGames from lobby where gameID = " +i;
+		while (model.getRowCount() < rows){
+			String sGetElements = "SELECT gameName AS getGames from lobby where gameID = " +updateHPRows ;
 			
 			
 			try {
@@ -226,6 +240,7 @@ public class Lobby extends JPanel{
 						if(model.getRowCount() < rows ){
 							model.addRow(new Object[]{getGames});
 						}
+							
 						getPlayerCount();
 						getHostName();
 						
@@ -242,10 +257,42 @@ public class Lobby extends JPanel{
 					((ResultSet) db).close();
 				} catch (Exception ignore) {
 				}
+			}updateHPRows++;
+		}
+	}
+	
+	public int getNewestGame() throws Exception {
+		int gameID = 0;
+		
+		String sMakeUpdate = "SELECT gameID AS newestValue FROM lobby WHERE gameID = (SELECT MAX(gameID)  FROM lobby)";
+
+		try {
+			db.execute(sMakeUpdate);
+
+			ResultSet rs = db.executeQuery(sMakeUpdate);
+
+			try {
+				while (rs.next()) {
+					gameID = rs.getInt("newestValue");
+
+				}
+			} finally {
+				try {
+					rs.close();
+				} catch (Exception ignore) {
+				}
+			}
+		} finally {
+			try {
+			
+			} catch (Exception ignore) {
 			}
 		}
 		
+		return gameID;
 	}
+	
+	
 	
 	public void getHostName() throws Exception {
 		int rows = model.getRowCount();
@@ -341,5 +388,5 @@ public class Lobby extends JPanel{
 			}
 		}
 		return database;
-	}
+	}	
 }
